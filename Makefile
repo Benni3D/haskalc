@@ -21,7 +21,7 @@ clean:
 
 install: haskalc
 	install -Dm755 haskalc $(PREFIX)/bin/haskalc
-	install -Dm644 haskalc.1 $(PREFIX)/man/man1/haskalc.1
+	install -Dm644 haskalc.1 $(PREFIX)/share/man/man1/haskalc.1
 
 .PHONY: all clean install
 
