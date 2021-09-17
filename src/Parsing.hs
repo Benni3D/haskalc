@@ -19,7 +19,7 @@ module Parsing where
 import Data.Char
 import Util
 
-data Expr = Val Int | Paren Expr | Unary Char Expr | Binary Expr Char Expr;
+data Expr = Val Int | Paren Expr | Unary Char Expr | Binary Expr Char Expr | Error [Char];
 
 showExpr :: Expr -> [Char]
 showExpr (Val n)        = show n
@@ -35,32 +35,32 @@ do_parse_int (x:xs)  | xs == []     =  (from_digit x, [])
                                        Just d   -> case do_parse_int xs of
                                                    (Nothing, r)   -> (Just d, xs)
                                                    (Just n, r)    -> (Just $ n + (d * 10^(num_digits n)), r)
-parse_int :: [Char] -> (Maybe Expr, [Char])
+parse_int :: [Char] -> (Expr, [Char])
 parse_int s =  case do_parse_int $ skip_ws s of
-               (Nothing, r)   -> (Nothing, r)
-               (Just n, r)    -> (Just $ Val n, r)
+               (Nothing, r)   -> (Error "failed to parse integer", r)
+               (Just n, r)    -> (Val n, r)
 
 
-do_parse_expr :: [Char] -> (Maybe Expr, [Char])
+do_parse_expr :: [Char] -> (Expr, [Char])
 
-match_paren :: (Maybe Expr, [Char]) -> (Maybe Expr, [Char])
-match_paren (Nothing, r)   = (Nothing, r)
+match_paren :: (Expr, [Char]) -> (Expr, [Char])
+match_paren (Error e, r)   = (Error e, r)
+match_paren (e, [])        = (Error "missing ')'", [])
 match_paren (e, r:rs)      | isSpace r = match_paren (e, rs)
-                           | r == ')'  =  case e of
-                                          Nothing  -> (Nothing, r:rs)
-                                          Just e   -> (Just $ Paren e, rs)
-                           | otherwise = (Nothing, r:rs)
+                           | r == ')'  = (Paren e, rs)
+                           | otherwise = (Error "missing ')'", r:rs)
 
-parse_paren :: [Char] -> (Maybe Expr, [Char])
+parse_paren :: [Char] -> (Expr, [Char])
 parse_paren (x:xs)   | isSpace x    = parse_paren xs
                      | x == '('     = match_paren $ do_parse_expr xs
                      | otherwise    = parse_int $ x:xs
 
-parse_unary :: [Char] -> (Maybe Expr, [Char])
+parse_unary :: [Char] -> (Expr, [Char])
+parse_unary []          = (Error "unexpected end of line", [])
 parse_unary (x:xs)      | isSpace x             = parse_unary xs
                         | x == '+' || x == '-'  =  case parse_unary xs of
-                                                   (Nothing, r) -> (Nothing, r)
-                                                   (Just e, r)  -> (Just $ Unary x e, r)
+                                                   (Error e, r) -> (Error e, r)
+                                                   (e, r)  -> (Unary x e, r)
                         | otherwise             =  parse_paren $ x:xs
 
 get_op :: [Char] -> [Char] -> (Maybe Char, [Char])
@@ -69,21 +69,21 @@ get_op (x:xs) ops | isSpace x    = get_op xs ops
                   | elem x ops   = (Just x, skip_ws xs)
                   | otherwise    = (Nothing, x:xs)
 
-parse_binary :: [Char] -> [Char] -> ([Char] -> (Maybe Expr, [Char])) -> (Maybe Expr, [Char])
+parse_binary :: [Char] -> [Char] -> ([Char] -> (Expr, [Char])) -> (Expr, [Char])
 parse_binary str ops f  =  case f str of
-                           (Nothing, rl)  -> (Nothing, rl)
-                           (Just left, rl)-> case get_op rl ops of
-                                             (Nothing, rop) -> (Just left, rl)
+                           (Error e, rl)  -> (Error e, rl)
+                           (left, rl)     -> case get_op rl ops of
+                                             (Nothing, rop) -> (left, rl)
                                              (Just op, rop) -> case parse_binary rop ops f of
-                                                         (Nothing, rr)     -> (Nothing, rr)
-                                                         (Just right, rr)  -> (Just $ Binary left op right, rr)
+                                                         (Error e, rr)     -> (Error e, rr)
+                                                         (right, rr)       -> (Binary left op right, rr)
                         
 parse_muldiv str = parse_binary str "*/%" parse_unary
 parse_addsub str = parse_binary str "+-" parse_muldiv
 
 do_parse_expr str = parse_addsub str
 
-parse_expr :: [Char] -> Maybe Expr
+parse_expr :: [Char] -> Expr
 parse_expr str =  case do_parse_expr str of
-                  (Nothing, r)   -> Nothing
-                  (Just e, r)    -> if (skip_ws r) == [] then Just e else Nothing
+                  (Error e, r)   -> Error e
+                  (e, r)         -> if (skip_ws r) == [] then e else Error "expected end of line, got garbage"

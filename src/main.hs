@@ -25,9 +25,9 @@ import System.IO
 import Parsing
 import Eval
 
-run :: Maybe Expr -> [Char]
-run Nothing          = "Error"
-run (Just e)         = show $ evalExpr e
+run :: Expr -> [Char]
+run (Error e)        = "Error: " ++ e
+run e                = show $ evalExpr e
 
 main :: IO()
 #if ENABLE_READLINE
