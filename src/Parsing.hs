@@ -86,4 +86,4 @@ do_parse_expr str = parse_addsub str
 parse_expr :: [Char] -> Maybe Expr
 parse_expr str =  case do_parse_expr str of
                   (Nothing, r)   -> Nothing
-                  (Just e, r)    -> if r == [] then Just e else Nothing
+                  (Just e, r)    -> if (skip_ws r) == [] then Just e else Nothing

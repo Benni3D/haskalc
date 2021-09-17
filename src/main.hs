@@ -36,14 +36,18 @@ main =   do
          case maybeLine of
             Nothing     -> exitSuccess
             Just "exit" -> exitSuccess
+            Just []     -> main
             Just line   -> putStrLn $ run $ parse_expr line
          main
 #else
 main =   do
-         putStr "> "
+         putStr "% "
          hFlush stdout
-         line   <- getLine
-         if line == [] then putStr "" else do
-            putStrLn $ run $ parse_expr line
-            main
+         line_in   <- getLine
+         case line_in of
+            ""       -> main
+            "exit"   -> exitSuccess
+            line     -> putStrLn $ run $ parse_expr line
+         main
+
 #endif
