@@ -24,12 +24,12 @@ find e (x:xs)     | e == x    = Just 0
                   | otherwise = do  n <- find e xs
                                     Just $ 1 + n
 
-num_digits :: Int -> Int
+num_digits :: Integer -> Integer
 num_digits 0 = 1
 num_digits n = ceiling $ logBase 10 $ realToFrac $ n + 1
 
-from_digit :: Char -> Maybe Int
-from_digit ch  | isDigit ch   = Just $ digitToInt ch
+from_digit :: Char -> Maybe Integer
+from_digit ch  | isDigit ch   = Just $ toInteger $ digitToInt ch
                | otherwise    = Nothing
 
 skip_ws :: [Char] -> [Char]

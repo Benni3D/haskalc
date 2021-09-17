@@ -17,9 +17,10 @@
 
 module Parsing where
 import Data.Char
+import Number
 import Util
 
-data Expr = Val Int | Paren Expr | Unary Char Expr | Binary Expr Char Expr | Error [Char];
+data Expr = Val Number | Paren Expr | Unary Char Expr | Binary Expr Char Expr | Error [Char]
 
 showExpr :: Expr -> [Char]
 showExpr (Val n)        = show n
@@ -27,7 +28,8 @@ showExpr (Paren e)      = "(" ++ (showExpr e) ++ ")"
 showExpr (Unary c e)    = c : (showExpr e)
 showExpr (Binary x c y) = (showExpr x) ++ [' ', c, ' '] ++ (showExpr y)
 
-do_parse_int :: [Char] -> (Maybe Int, [Char])
+-- TODO: Extend to parsing decimals
+do_parse_int :: [Char] -> (Maybe Integer, [Char])
 do_parse_int []                     =  (Nothing, [])
 do_parse_int (x:xs)  | xs == []     =  (from_digit x, [])
                      | otherwise    =  case from_digit x of
@@ -38,7 +40,7 @@ do_parse_int (x:xs)  | xs == []     =  (from_digit x, [])
 parse_int :: [Char] -> (Expr, [Char])
 parse_int s =  case do_parse_int $ skip_ws s of
                (Nothing, r)   -> (Error "failed to parse integer", r)
-               (Just n, r)    -> (Val n, r)
+               (Just n, r)    -> (Val $ IVal n, r)
 
 
 do_parse_expr :: [Char] -> (Expr, [Char])
