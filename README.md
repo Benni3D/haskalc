@@ -12,5 +12,5 @@ If __System.Console.Readline__ is not installed,<br>
 please build with ```make ENABLE_READLINE=0```
 
 ## Installation
-```sudo make```<br>
-Changing the installation prefix can be done by specifying the ```PREFIX=/path/to/prefix``` make variable.
+```sudo make install```<br>
+Changing the installation prefix can be done by setting the ```PREFIX=/path/to/prefix``` make variable.
