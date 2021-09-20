@@ -36,11 +36,8 @@ instance Num Number where
    signum (IVal x)            = IVal $ signum x
    signum (FVal x)            = FVal $ signum x
 
-   negate (IVal x)            | x < 0     = IVal $ -x
-                              | otherwise = IVal $  x
-
-   negate (FVal x)            | x < 0     = FVal $ -x
-                              | otherwise = FVal $  x
+   negate (IVal x)            = IVal $ -x
+   negate (FVal x)            = FVal $ -x
 
    fromInteger x              = IVal x
 

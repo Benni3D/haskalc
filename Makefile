@@ -7,6 +7,8 @@ PREFIX ?= /usr/local
 # See also: <https://hackage.haskell.org/package/readline>
 ENABLE_READLINE ?= 1
 
+GHCFLAGS += -dynamic
+
 ifeq ($(ENABLE_READLINE),1)
 GHCFLAGS += -lreadline -DENABLE_READLINE=1
 endif
