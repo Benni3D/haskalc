@@ -1,14 +1,17 @@
 sources = $(wildcard src/*.hs)
 
-GHC = ghc -isrc -no-keep-hi-files -no-keep-o-files
+GHC ?= ghc
+GHCFLAGS += -isrc -no-keep-hi-files -no-keep-o-files
+
 PREFIX ?= /usr/local
 
-# Disable if you don't have the readline package install
+# Disable if you don't have the `readline` package installed
 # See also: <https://hackage.haskell.org/package/readline>
 ENABLE_READLINE ?= 1
-ENABLE_POSIX ?= 0				# experimental
 
-#GHCFLAGS += -dynamic
+# Disable if you don't have the `unix` package installed
+# See also: <https://hackage.haskell.org/package/unix>
+ENABLE_POSIX ?= 0				# experimental
 
 ifeq ($(ENABLE_READLINE),1)
 GHCFLAGS += -lreadline -DENABLE_READLINE=1
