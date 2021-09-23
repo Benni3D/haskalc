@@ -8,7 +8,7 @@ PREFIX ?= /usr/local
 ENABLE_READLINE ?= 1
 ENABLE_POSIX ?= 0				# experimental
 
-GHCFLAGS += -dynamic
+#GHCFLAGS += -dynamic
 
 ifeq ($(ENABLE_READLINE),1)
 GHCFLAGS += -lreadline -DENABLE_READLINE=1

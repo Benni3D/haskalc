@@ -29,7 +29,7 @@ showExpr (Unary c e)    = c : (showExpr e)
 showExpr (Binary x c y) = (showExpr x) ++ [' ', c, ' '] ++ (showExpr y)
 
 -- TODO: Extend to parsing decimals
-do_parse_int :: [Char] -> (Maybe Integer, [Char])
+do_parse_int :: [Char] -> (Maybe INumber, [Char])
 do_parse_int []                     =  (Nothing, [])
 do_parse_int (x:xs)  | xs == []     =  (from_digit x, [])
                      | otherwise    =  case from_digit x of
@@ -37,10 +37,33 @@ do_parse_int (x:xs)  | xs == []     =  (from_digit x, [])
                                        Just d   -> case do_parse_int xs of
                                                    (Nothing, r)   -> (Just d, xs)
                                                    (Just n, r)    -> (Just $ n + (d * 10^(num_digits n)), r)
-parse_int :: [Char] -> (Expr, [Char])
-parse_int s =  case do_parse_int $ skip_ws s of
-               (Nothing, r)   -> (Error "failed to parse integer", r)
-               (Just n, r)    -> (Val $ IVal n, r)
+
+do_parse_float :: [Char] -> (Expr, [Char])
+do_parse_float s =
+   case do_parse_int s of
+   (Nothing, r)   -> (Error "failed to parse integer", r)
+   (Just n,  r)   ->
+      case r of
+      ('.':rs) ->
+         case do_decimal (-1) rs of
+         (Nothing, r2)  -> (Error "failed to parse decimal", r2)
+         (Just fp, r2)  -> (Val $ FVal $ (realToFrac n) + fp, r2)
+      rs       -> (Val $ IVal n, r)
+                     
+
+do_decimal :: Int -> [Char] -> (Maybe FNumber, [Char])
+do_decimal _ []      =  (Nothing, [])
+do_decimal e (x:xs)  =  case from_digit x of
+                        Nothing  -> (Nothing, (x:xs))
+                        Just d   -> case do_decimal (e - 1) xs of
+                                    (Nothing, r)   -> (Just $ (realToFrac d) * z, r)
+                                    (Just n,  r)   -> (Just $ n + ((realToFrac d) * z), r)
+                        where
+                           z = 10.0 ** (realToFrac e) :: FNumber
+
+
+parse_num :: [Char] -> (Expr, [Char])
+parse_num s = do_parse_float s
 
 
 do_parse_expr :: [Char] -> (Expr, [Char])
@@ -55,7 +78,7 @@ match_paren (e, r:rs)      | isSpace r = match_paren (e, rs)
 parse_paren :: [Char] -> (Expr, [Char])
 parse_paren (x:xs)   | isSpace x    = parse_paren xs
                      | x == '('     = match_paren $ do_parse_expr xs
-                     | otherwise    = parse_int $ x:xs
+                     | otherwise    = parse_num $ x:xs
 
 parse_unary :: [Char] -> (Expr, [Char])
 parse_unary []          = (Error "unexpected end of line", [])

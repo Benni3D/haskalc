@@ -17,7 +17,10 @@
 
 module Number where
 
-data Number = IVal Integer | FVal Float
+type INumber = Integer
+type FNumber = Double
+
+data Number = IVal INumber | FVal FNumber
 
 instance Num Number where
    (+) (IVal x) (IVal y)      = IVal $ x + y
