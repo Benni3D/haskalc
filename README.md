@@ -4,8 +4,8 @@ This is my preferred "Hello World"-program when learning a new programming langu
 
 ## Dependencies
 - The GHC compiler (or compatible)
-- __System.Console.Readline__ (optional)
-- __System.Posix.Signals__ (optional)
+- [__System.Console.Readline__](https://hackage.haskell.org/package/readline) (optional)
+- [__System.Posix.Signals__](https://hackage.haskell.org/package/unix) (optional)
 
 ## Building
 ```make [Option=Value...]```<br>
