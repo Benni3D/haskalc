@@ -20,6 +20,10 @@
 import System.Console.Readline
 #endif
 
+#if ENABLE_POSIX
+import System.Posix.Signals
+#endif
+
 import System.Exit
 import System.IO
 import Parsing
@@ -29,25 +33,43 @@ run :: Expr -> [Char]
 run (Error e)        = "Error: " ++ e
 run e                = show $ evalExpr e
 
-main :: IO()
-#if ENABLE_READLINE
-main =   do
-         maybeLine <- readline "% "
-         case maybeLine of
-            Nothing     -> exitSuccess
-            Just "exit" -> exitSuccess
-            Just []     -> main
-            Just line   -> putStrLn $ run $ parse_expr line
-         main
-#else
-main =   do
-         putStr "% "
-         hFlush stdout
-         line_in   <- getLine
-         case line_in of
-            ""       -> main
-            "exit"   -> exitSuccess
-            line     -> putStrLn $ run $ parse_expr line
-         main
+loop :: IO ()
 
+#if ENABLE_READLINE
+loop = do
+   maybeLine <- readline "% "
+   case maybeLine of
+      Nothing     -> exitSuccess
+      Just "exit" -> exitSuccess
+      Just []     -> loop
+      Just line   -> putStrLn $ run $ parse_expr line
+   loop
+#else
+loop = do
+   putStr "% "
+   hFlush stdout
+   line_in   <- getLine
+   case line_in of
+      ""       -> loop
+      "exit"   -> exitSuccess
+      line     -> putStrLn $ run $ parse_expr line
+   loop
 #endif
+
+#if ENABLE_POSIX
+handle_sigINT :: IO ()
+handle_sigINT = do
+   hFlush stdout
+   putStrLn "Int"
+   hFlush stdout
+#endif
+
+main :: IO ()
+main = do
+#if ENABLE_POSIX
+   installHandler sigINT (Catch (handle_sigINT)) (Just emptySignalSet)
+   putStrLn "registered"
+#endif
+   loop
+
+
