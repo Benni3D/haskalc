@@ -5,6 +5,7 @@ This is my preferred "Hello World"-program when learning a new programming langu
 ## Dependencies
 - The GHC compiler (or compatible)
 - __System.Console.Readline__ (optional)
+- __System.Posix.Signals__ (optional)
 
 ## Building
 ```make```<br>
