@@ -86,3 +86,6 @@ instance Show Number where
    show (IVal x)              = show x
    show (FVal x)              = show x
 
+pow10 :: Integer -> Number
+pow10 e  | e >= 0    = IVal $ 10 ^ e
+         | otherwise = FVal $ 10.0 ** (realToFrac e)

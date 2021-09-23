@@ -38,17 +38,17 @@ do_parse_int (x:xs)  | xs == []     =  (from_digit x, [])
                                                    (Nothing, r)   -> (Just d, xs)
                                                    (Just n, r)    -> (Just $ n + (d * 10^(num_digits n)), r)
 
-do_parse_float :: [Char] -> (Expr, [Char])
+do_parse_float :: [Char] -> (Maybe Number, [Char])
 do_parse_float s =
    case do_parse_int s of
-   (Nothing, r)   -> (Error "failed to parse integer", r)
+   (Nothing, r)   -> (Nothing, r)
    (Just n,  r)   ->
       case r of
       ('.':rs) ->
          case do_decimal (-1) rs of
-         (Nothing, r2)  -> (Error "failed to parse decimal", r2)
-         (Just fp, r2)  -> (Val $ FVal $ (realToFrac n) + fp, r2)
-      rs       -> (Val $ IVal n, r)
+         (Nothing, r2)  -> (Nothing, r2)
+         (Just fp, r2)  -> (Just $ FVal $ (realToFrac n) + fp, r2)
+      rs       -> (Just $ IVal n, r)
                      
 
 do_decimal :: Int -> [Char] -> (Maybe FNumber, [Char])
@@ -60,10 +60,30 @@ do_decimal e (x:xs)  =  case from_digit x of
                                     (Just n,  r)   -> (Just $ n + ((realToFrac d) * z), r)
                         where
                            z = 10.0 ** (realToFrac e) :: FNumber
+                           
+do_unary_int :: [Char] -> (Maybe Integer, [Char])
+do_unary_int ('+':xs)   = do_unary_int xs
+do_unary_int ('-':xs)   =
+   case do_unary_int xs of
+   (Nothing, r)   -> (Nothing, r)
+   (Just x,  r)   -> (Just $ -x, r)
+do_unary_int s          = do_parse_int s
 
+parse_float :: [Char] -> (Expr, [Char])
+parse_float s =
+   case do_parse_float s of
+   (Nothing, r)   -> (Error "failed to parse number", r)
+   (Just x, r)    ->
+      case r of
+      ('e':rs) ->
+         case do_unary_int rs of
+         (Nothing, r2)  -> (Error "expected exponent", r2)
+         (Just e,  r2)  -> (Val $ x * (pow10 e), r2)
+      rs       -> (Val x, r)
+   
 
 parse_num :: [Char] -> (Expr, [Char])
-parse_num s = do_parse_float s
+parse_num s = parse_float s
 
 
 do_parse_expr :: [Char] -> (Expr, [Char])
