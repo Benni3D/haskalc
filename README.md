@@ -8,9 +8,12 @@ This is my preferred "Hello World"-program when learning a new programming langu
 - __System.Posix.Signals__ (optional)
 
 ## Building
-```make```<br>
-If __System.Console.Readline__ is not installed,<br>
-please build with ```make ENABLE_READLINE=0```
+```make [Option=Value...]```<br>
+| Build Option | Default Value | Description |
+|--------------|---------------|-------------|
+| ENABLE_READLINE | 1 | Enable libreadline support (things like CTRL+L and history) |
+| ENABLE_POSIX | 0 (experimenal) | Enable handling of POSIX signals (like CTRL+C) |
+
 
 ## Installation
 ```sudo make install```<br>
