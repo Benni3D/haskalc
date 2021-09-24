@@ -69,6 +69,53 @@ instance Fractional Number where
    (/) (FVal a) (IVal b)      = FVal $ a / (realToFrac b)
    (/) (FVal a) (FVal b)      = FVal $ a / b
 
+instance Floating Number where
+   pi                         = FVal pi
+
+   exp (FVal x)               = FVal $ exp x
+   exp (IVal x)               = FVal $ exp $ realToFrac x
+
+   log (FVal x)               = FVal $ log x
+   log (IVal x)               = FVal $ log $ realToFrac x
+
+   sin (FVal x)               = FVal $ sin x
+   sin (IVal x)               = FVal $ sin $ realToFrac x
+
+   cos (FVal x)               = FVal $ cos x
+   cos (IVal x)               = FVal $ cos $ realToFrac x
+
+   asin (FVal x)              = FVal $ asin x
+   asin (IVal x)              = FVal $ asin $ realToFrac x
+
+   acos (FVal x)              = FVal $ acos x
+   acos (IVal x)              = FVal $ acos $ realToFrac x
+
+   atan (FVal x)              = FVal $ atan x
+   atan (IVal x)              = FVal $ atan $ realToFrac x
+
+   sinh (FVal x)              = FVal $ sinh x
+   sinh (IVal x)              = FVal $ sinh $ realToFrac x
+
+   cosh (FVal x)              = FVal $ cosh x
+   cosh (IVal x)              = FVal $ cosh $ realToFrac x
+
+   asinh (FVal x)             = FVal $ asinh x
+   asinh (IVal x)             = FVal $ asinh $ realToFrac x
+
+   acosh (FVal x)             = FVal $ acosh x
+   acosh (IVal x)             = FVal $ acosh $ realToFrac x
+
+   atanh (FVal x)             = FVal $ atanh x
+   atanh (IVal x)             = FVal $ atanh $ realToFrac x
+
+   (**) (IVal x) (IVal y)     | y >= 0    = IVal $ x ^ y
+                              | otherwise = FVal $ (realToFrac x) ** (realToFrac y)
+
+   (**) (IVal x) (FVal y)                 = FVal $ (realToFrac x) ** y
+   (**) (FVal x) (IVal y)                 = FVal $ x ** (realToFrac y)
+   (**) (FVal x) (FVal y)                 = FVal $ x ** y
+
+
 instance Eq Number where
    (==) (IVal x) (IVal y)     = x == y
    (==) (IVal x) (FVal y)     = (realToFrac x) == y

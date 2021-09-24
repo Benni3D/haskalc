@@ -88,6 +88,7 @@ parse_num s = parse_float s
 
 do_parse_expr :: [Char] -> (Expr, [Char])
 
+-- parse '(' `expr` ')'
 match_paren :: (Expr, [Char]) -> (Expr, [Char])
 match_paren (Error e, r)   = (Error e, r)
 match_paren (e, [])        = (Error "missing ')'", [])
@@ -99,6 +100,8 @@ parse_paren :: [Char] -> (Expr, [Char])
 parse_paren (x:xs)   | isSpace x    = parse_paren xs
                      | x == '('     = match_paren $ do_parse_expr xs
                      | otherwise    = parse_num $ x:xs
+      
+parse_exp :: [Char] -> (Expr, [Char])
 
 parse_unary :: [Char] -> (Expr, [Char])
 parse_unary []          = (Error "unexpected end of line", [])
@@ -106,7 +109,7 @@ parse_unary (x:xs)      | isSpace x             = parse_unary xs
                         | x == '+' || x == '-'  =  case parse_unary xs of
                                                    (Error e, r) -> (Error e, r)
                                                    (e, r)  -> (Unary x e, r)
-                        | otherwise             =  parse_paren $ x:xs
+                        | otherwise             =  parse_exp $ x:xs
 
 get_op :: [Char] -> [Char] -> (Maybe Char, [Char])
 get_op [] ops     = (Nothing, [])
@@ -114,16 +117,24 @@ get_op (x:xs) ops | isSpace x    = get_op xs ops
                   | elem x ops   = (Just x, skip_ws xs)
                   | otherwise    = (Nothing, x:xs)
 
+-- parse `expr` `OP` `expr`
+do_parse_binary str ops fl fr =  case fl str of
+                                 (Error e, rl)  -> (Error e, rl)
+                                 (left, rl)     -> case get_op rl ops of
+                                                   (Nothing, rop) -> (left, rl)
+                                                   (Just op, rop) -> case parse_binary rop ops fr of
+                                                               (Error e, rr)     -> (Error e, rr)
+                                                               (right, rr)       -> (Binary left op right, rr)
 parse_binary :: [Char] -> [Char] -> ([Char] -> (Expr, [Char])) -> (Expr, [Char])
-parse_binary str ops f  =  case f str of
-                           (Error e, rl)  -> (Error e, rl)
-                           (left, rl)     -> case get_op rl ops of
-                                             (Nothing, rop) -> (left, rl)
-                                             (Just op, rop) -> case parse_binary rop ops f of
-                                                         (Error e, rr)     -> (Error e, rr)
-                                                         (right, rr)       -> (Binary left op right, rr)
+parse_binary str ops f = do_parse_binary str ops f f
+
+-- parse ^ (exponent)
+parse_exp str = do_parse_binary str "^" parse_paren parse_unary
                         
+-- parse * (multiply), / (divide), % (modulo)
 parse_muldiv str = parse_binary str "*/%" parse_unary
+
+-- parse + (addition), - (subtraction)
 parse_addsub str = parse_binary str "+-" parse_muldiv
 
 do_parse_expr str = parse_addsub str
