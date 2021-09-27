@@ -56,6 +56,7 @@ evalExpr (Binary (Var name) '=' r) = do
                                  (Right v)   -> do
                                     envAddVar (name,v)
                                     return $ Right v
+evalExpr (Binary l '=' _)     = return $ Left $ "cannot assign to `" ++ (show l) ++ "`"
 
 evalExpr (FCall "sin" a)      = do_unary_fcall "sin" sin a
 evalExpr (FCall "cos" a)      = do_unary_fcall "cos" cos a
