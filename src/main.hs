@@ -28,6 +28,7 @@ import System.Exit
 import System.IO
 import Parsing
 import Eval
+import Expr
 
 run :: Expr -> [Char]
 run (Error e)        = "Error: " ++ e

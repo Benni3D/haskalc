@@ -16,10 +16,11 @@
  -}
 
 module Eval where
-import Parsing
+import Context
 import Number
+import Expr
 
-evalExpr :: Expr ->  Number
+evalExpr :: Expr -> Number
 evalExpr (Val n)              = n
 evalExpr (Paren e)            = evalExpr e
 evalExpr (Unary '+' e)        = evalExpr e

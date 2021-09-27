@@ -19,20 +19,7 @@ module Parsing where
 import Data.Char
 import Number
 import Util
-
-data Expr   = Val Number
-            | Var [Char]
-            | FCall [Char] [Expr]
-            | Paren Expr
-            | Unary Char Expr
-            | Binary Expr Char Expr
-            | Error [Char]
-
-showExpr :: Expr -> [Char]
-showExpr (Val n)        = show n
-showExpr (Paren e)      = "(" ++ (showExpr e) ++ ")"
-showExpr (Unary c e)    = c : (showExpr e)
-showExpr (Binary x c y) = (showExpr x) ++ [' ', c, ' '] ++ (showExpr y)
+import Expr
 
 do_parse_int :: [Char] -> (Maybe INumber, [Char])
 do_parse_int []                     =  (Nothing, [])
