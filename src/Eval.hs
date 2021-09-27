@@ -40,14 +40,32 @@ evalExpr (FCall "cos" _)      = IVal 0
 evalExpr (FCall "tan" [x])    = tan $ evalExpr x
 evalExpr (FCall "tan" _)      = IVal 0
 
-evalExpr (FCall "asin" [x])   = sin $ evalExpr x
+evalExpr (FCall "asin" [x])   = asin $ evalExpr x
 evalExpr (FCall "asin" _)     = IVal 0
 
-evalExpr (FCall "acos" [x])   = cos $ evalExpr x
+evalExpr (FCall "acos" [x])   = acos $ evalExpr x
 evalExpr (FCall "acos" _)     = IVal 0
 
-evalExpr (FCall "atan" [x])   = tan $ evalExpr x
+evalExpr (FCall "atan" [x])   = atan $ evalExpr x
 evalExpr (FCall "atan" _)     = IVal 0
+
+evalExpr (FCall "sinh" [x])    = sinh $ evalExpr x
+evalExpr (FCall "sinh" _)      = IVal 0
+
+evalExpr (FCall "cosh" [x])    = cosh $ evalExpr x
+evalExpr (FCall "cosh" _)      = IVal 0
+
+evalExpr (FCall "tanh" [x])    = tanh $ evalExpr x
+evalExpr (FCall "tanh" _)      = IVal 0
+
+evalExpr (FCall "asinh" [x])   = asinh $ evalExpr x
+evalExpr (FCall "asinh" _)     = IVal 0
+
+evalExpr (FCall "acosh" [x])   = acosh $ evalExpr x
+evalExpr (FCall "acosh" _)     = IVal 0
+
+evalExpr (FCall "atanh" [x])   = atanh $ evalExpr x
+evalExpr (FCall "atanh" _)     = IVal 0
 
 evalExpr (FCall _ _)          = IVal 0
 
