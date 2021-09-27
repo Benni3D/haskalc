@@ -169,7 +169,10 @@ parse_muldiv str = parse_binary str "*/%" parse_unary
 -- parse + (addition), - (subtraction)
 parse_addsub str = parse_binary str "+-" parse_muldiv
 
-do_parse_expr str = parse_addsub str
+-- parse = (assignment)
+parse_assign str = parse_binary str "=" parse_addsub
+
+do_parse_expr str = parse_assign str
 
 parse_expr :: [Char] -> Expr
 parse_expr str =  case do_parse_expr str of

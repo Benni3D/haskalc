@@ -24,36 +24,56 @@ import System.Console.Readline
 import System.Posix.Signals
 #endif
 
+import Control.Monad.State
 import System.Exit
 import System.IO
+import Context
 import Parsing
 import Eval
 import Expr
 
-run :: Expr -> [Char]
-run e = showEvalResult $ evalExpr e
+do_eval :: Expr -> EvalContext (EvalEnv, EvalResult)
+do_eval e = do
+   v <- evalExpr e
+   env <- get
+   return (env, v)
+   
 
-loop :: IO ()
+run :: EvalEnv -> Expr -> (EvalEnv, String)
+run env e =
+   case res of
+   Left msg    -> (new_env, "Error: " ++ msg)
+   Right val   -> (new_env, show val)
+   where
+      (new_env, res) = evalState (do_eval e) env
+
+loop :: EvalEnv -> IO ()
 
 #if ENABLE_READLINE
-loop = do
+loop env = do
    maybeLine <- readline "% "
    case maybeLine of
       Nothing     -> exitSuccess
       Just "exit" -> exitSuccess
-      Just []     -> loop
-      Just line   -> putStrLn $ run $ parse_expr line
-   loop
+      Just []     -> loop env
+      Just line   -> do
+         expr <- return $ parse_expr line
+         (new_env, str) <- return $ run env expr
+         putStrLn str
+         loop new_env
 #else
-loop = do
+loop env = do
    putStr "% "
    hFlush stdout
    line_in   <- getLine
    case line_in of
-      ""       -> loop
+      ""       -> loop env
       "exit"   -> exitSuccess
-      line     -> putStrLn $ run $ parse_expr line
-   loop
+      line     -> do
+         expr <- return $ parse_expr line
+         (new_env, str) <- return $ run env expr
+         putStrLn str
+         loop new_env
 #endif
 
 #if ENABLE_POSIX
@@ -70,6 +90,6 @@ main = do
    installHandler sigINT (Catch (handle_sigINT)) (Just emptySignalSet)
    putStrLn "registered"
 #endif
-   loop
+   loop []
 
 

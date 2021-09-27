@@ -17,7 +17,7 @@ show2 (x:xs)   = "," ++ (show x) ++ (show2 xs)
 
 instance Show Expr where
    show (Val n)            = show n
-   show (Var n)            = show n
+   show (Var n)            = n
    show (FCall n [])       = (show n) ++ "()"
    show (FCall n (x:xs))   = (show n) ++ "(" ++ (show x) ++ (show2 xs) ++ ")"
    show (Paren e)          = "(" ++ (show e) ++ ")"

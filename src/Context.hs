@@ -1,18 +1,18 @@
 module Context where
 import Control.Monad.State
-import Expr
+import Number
 
-type Variable = (String, Expr)
-type CalcEnv = [Variable]
-type CalcContext = State CalcEnv
+type Variable = (String, Number)
+type EvalEnv = [Variable]
+type EvalContext = State EvalEnv
 
-envAddVar :: (String, Expr) -> CalcContext ()
+envAddVar :: Variable -> EvalContext Number
 envAddVar v = do
    env <- get
-   put $ v : env
-   return ()
+   put $ internal_addVar v env
+   return (snd v)
 
-envGetVar :: String -> CalcContext Expr
+envGetVar :: String -> EvalContext (Maybe Number)
 envGetVar name = do
    env <- get
    return $ internal_findVar name env
@@ -21,7 +21,12 @@ envGetVar name = do
 
 
 
-internal_findVar :: String -> CalcEnv -> Expr
-internal_findVar name []      = Error $ "variable " ++ name ++ " not found"
-internal_findVar name (x:xs)  | name == (fst x)    = snd x
-                              | otherwise          = internal_findVar name xs
+internal_findVar :: String -> EvalEnv -> Maybe Number
+internal_findVar name []                     = Nothing
+internal_findVar name ((n,v):xs) | n == name = Just v
+                                 | otherwise = internal_findVar name xs
+
+internal_addVar :: Variable -> EvalEnv -> EvalEnv
+internal_addVar v []                   = [v]
+internal_addVar (n, v) ((en, ev):xs)   | n == en   = (n, v) : xs
+                                       | otherwise = internal_addVar (n, v) xs

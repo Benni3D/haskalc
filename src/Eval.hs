@@ -26,58 +26,60 @@ showEvalResult :: EvalResult -> [Char]
 showEvalResult (Right r)      = show r
 showEvalResult (Left msg)     = "Error: " ++ msg
 
-evalExpr :: Expr -> EvalResult
-evalExpr (Val n)              = Right n
+
+do_binary :: (Number -> Number -> Number) -> Expr -> Expr -> EvalContext EvalResult
+do_binary f l r = do
+   mx <- evalExpr l
+   my <- evalExpr r
+   return $ mx >>= (\x -> my >>= (\y -> Right $ f x y))
+
+do_unary_fcall :: String -> (Number -> Number) -> [Expr] -> EvalContext EvalResult
+do_unary_fcall _ f [e] = do { mx <- evalExpr e; return $ mx >>= (\x -> Right $ f x) }
+do_unary_fcall n _ _   = return $ Left $ n ++ "(x): invalid argument count"
+
+evalExpr :: Expr -> EvalContext EvalResult
+evalExpr (Error msg)          = return $ Left msg
+evalExpr (Val n)              = return $ Right n
 evalExpr (Paren e)            = evalExpr e
 evalExpr (Unary '+' e)        = evalExpr e
-evalExpr (Unary '-' e)        = evalExpr e >>= (\x -> Right $ -x)
-evalExpr (Binary l '+' r)     = do { x <- evalExpr l; y <- evalExpr r; Right $ x + y }
-evalExpr (Binary l '-' r)     = do { x <- evalExpr l; y <- evalExpr r; Right $ x - y }
-evalExpr (Binary l '*' r)     = do { x <- evalExpr l; y <- evalExpr r; Right $ x * y }
-evalExpr (Binary l '/' r)     = do { x <- evalExpr l; y <- evalExpr r; Right $ x / y }
-evalExpr (Binary l '%' r)     = do { x <- evalExpr l; y <- evalExpr r; Right $ x `rem` y }
-evalExpr (Binary l '^' r)     = do { x <- evalExpr l; y <- evalExpr r; Right $ x ** y }
-evalExpr (Error msg)          = Left msg
+evalExpr (Unary '-' e)        = do { mx <- evalExpr e; return $ mx >>= (\x -> Right (-x)) }
+evalExpr (Binary l '+' r)     = do_binary (+) l r
+evalExpr (Binary l '-' r)     = do_binary (-) l r
+evalExpr (Binary l '*' r)     = do_binary (*) l r
+evalExpr (Binary l '/' r)     = do_binary (/) l r
+evalExpr (Binary l '%' r)     = do_binary rem l r
+evalExpr (Binary l '^' r)     = do_binary (**) l r
+evalExpr (Binary (Var name) '=' r) = do
+                              mv <- evalExpr r
+                              case mv of
+                                 (Left msg)  -> return $ Left msg
+                                 (Right v)   -> do
+                                    envAddVar (name,v)
+                                    return $ Right v
 
-evalExpr (FCall "sin" [mx])   = do { x <- evalExpr mx; Right $ sin x }
-evalExpr (FCall "sin" _)      = Left "sin(x): invalid argument count"
+evalExpr (FCall "sin" a)      = do_unary_fcall "sin" sin a
+evalExpr (FCall "cos" a)      = do_unary_fcall "cos" cos a
+evalExpr (FCall "tan" a)      = do_unary_fcall "tan" tan a
+evalExpr (FCall "sinh" a)     = do_unary_fcall "sinh" sinh a
+evalExpr (FCall "cosh" a)     = do_unary_fcall "cosh" cosh a
+evalExpr (FCall "tanh" a)     = do_unary_fcall "tanh" tanh a
+evalExpr (FCall "asin" a)     = do_unary_fcall "asin" asin a
+evalExpr (FCall "acos" a)     = do_unary_fcall "acos" acos a
+evalExpr (FCall "atan" a)     = do_unary_fcall "atan" atan a
+evalExpr (FCall "asinh" a)    = do_unary_fcall "asinh" asinh a
+evalExpr (FCall "acosh" a)    = do_unary_fcall "acosh" acosh a
+evalExpr (FCall "atanh" a)    = do_unary_fcall "atanh" atanh a
 
-evalExpr (FCall "cos" [mx])   = do { x <- evalExpr mx; Right $ cos x }
-evalExpr (FCall "cos" _)      = Left "cos(x): invalid argument count"
+evalExpr (FCall _ _)          = return $ Left "User-defined functions are not supported"
 
-evalExpr (FCall "tan" [mx])   = do { x <- evalExpr mx; Right $ tan x }
-evalExpr (FCall "tan" _)      = Left "tan(x): invalid argument count"
+evalExpr (Var "pi")           = return $ Right $ FVal pi
 
-evalExpr (FCall "asin" [mx])  = do { x <- evalExpr mx; Right $ asin x }
-evalExpr (FCall "asin" _)     = Left "asin(x): invalid argument count"
+evalExpr (Var name)           = do
+   mv <- envGetVar name
+   case mv of
+      Nothing  -> return $ Left $ "Variable " ++ name ++ " does not exist."
+      Just v   -> return $ Right v
 
-evalExpr (FCall "acos" [mx])  = do { x <- evalExpr mx; Right $ acos x }
-evalExpr (FCall "acos" _)     = Left "acos(x): invalid argument count"
 
-evalExpr (FCall "atan" [mx])  = do { x <- evalExpr mx; Right $ atan x }
-evalExpr (FCall "atan" _)     = Left "atan(x): invalid argument count"
-
-evalExpr (FCall "sinh" [mx])  = do { x <- evalExpr mx; Right $ sinh x }
-evalExpr (FCall "sinh" _)     = Left "sinh(x): invalid argument count"
-
-evalExpr (FCall "cosh" [mx])  = do { x <- evalExpr mx; Right $ cosh x }
-evalExpr (FCall "cosh" _)     = Left "cosh(x): invalid argument count"
-
-evalExpr (FCall "tanh" [mx])  = do { x <- evalExpr mx; Right $ tanh x }
-evalExpr (FCall "tanh" _)     = Left "tanh(x): invalid argument count"
-
-evalExpr (FCall "asinh" [mx]) = do { x <- evalExpr mx; Right $ asinh x }
-evalExpr (FCall "asinh" _)     = Left "asinh(x): invalid argument count"
-
-evalExpr (FCall "acosh" [mx]) = do { x <- evalExpr mx; Right $ acosh x }
-evalExpr (FCall "acosh" _)     = Left "acosh(x): invalid argument count"
-
-evalExpr (FCall "atanh" [mx]) = do { x <- evalExpr mx; Right $ atanh x }
-evalExpr (FCall "atanh" _)     = Left "atanh(x): invalid argument count"
-
-evalExpr (FCall _ _)          = Left "User-defined functions are not supported"
-
-evalExpr (Var name)           = Left "Variables are not supported"
-
-evalExpr e                    = Left $ "failed to evaluate `" ++ (show e) ++ "`"
+evalExpr e                    = return $ Left $ "failed to evaluate `" ++ (show e) ++ "`"
 
