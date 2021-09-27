@@ -20,56 +20,64 @@ import Context
 import Number
 import Expr
 
-evalExpr :: Expr -> Number
-evalExpr (Val n)              = n
+type EvalResult = Either [Char] Number
+
+showEvalResult :: EvalResult -> [Char]
+showEvalResult (Right r)      = show r
+showEvalResult (Left msg)     = "Error: " ++ msg
+
+evalExpr :: Expr -> EvalResult
+evalExpr (Val n)              = Right n
 evalExpr (Paren e)            = evalExpr e
 evalExpr (Unary '+' e)        = evalExpr e
-evalExpr (Unary '-' e)        = -(evalExpr e)
-evalExpr (Binary l '+' r)     = (evalExpr l) + (evalExpr r)
-evalExpr (Binary l '-' r)     = (evalExpr l) - (evalExpr r)
-evalExpr (Binary l '*' r)     = (evalExpr l) * (evalExpr r)
-evalExpr (Binary l '/' r)     = (evalExpr l) / (evalExpr r)
-evalExpr (Binary l '%' r)     = rem (evalExpr l) (evalExpr r)
-evalExpr (Binary l '^' r)     = (evalExpr l) ** (evalExpr r)
+evalExpr (Unary '-' e)        = evalExpr e >>= (\x -> Right $ -x)
+evalExpr (Binary l '+' r)     = do { x <- evalExpr l; y <- evalExpr r; Right $ x + y }
+evalExpr (Binary l '-' r)     = do { x <- evalExpr l; y <- evalExpr r; Right $ x - y }
+evalExpr (Binary l '*' r)     = do { x <- evalExpr l; y <- evalExpr r; Right $ x * y }
+evalExpr (Binary l '/' r)     = do { x <- evalExpr l; y <- evalExpr r; Right $ x / y }
+evalExpr (Binary l '%' r)     = do { x <- evalExpr l; y <- evalExpr r; Right $ x `rem` y }
+evalExpr (Binary l '^' r)     = do { x <- evalExpr l; y <- evalExpr r; Right $ x ** y }
+evalExpr (Error msg)          = Left msg
 
-evalExpr (FCall "sin" [x])    = sin $ evalExpr x
-evalExpr (FCall "sin" _)      = IVal 0
+evalExpr (FCall "sin" [mx])   = do { x <- evalExpr mx; Right $ sin x }
+evalExpr (FCall "sin" _)      = Left "sin(x): invalid argument count"
 
-evalExpr (FCall "cos" [x])    = cos $ evalExpr x
-evalExpr (FCall "cos" _)      = IVal 0
+evalExpr (FCall "cos" [mx])   = do { x <- evalExpr mx; Right $ cos x }
+evalExpr (FCall "cos" _)      = Left "cos(x): invalid argument count"
 
-evalExpr (FCall "tan" [x])    = tan $ evalExpr x
-evalExpr (FCall "tan" _)      = IVal 0
+evalExpr (FCall "tan" [mx])   = do { x <- evalExpr mx; Right $ tan x }
+evalExpr (FCall "tan" _)      = Left "tan(x): invalid argument count"
 
-evalExpr (FCall "asin" [x])   = asin $ evalExpr x
-evalExpr (FCall "asin" _)     = IVal 0
+evalExpr (FCall "asin" [mx])  = do { x <- evalExpr mx; Right $ asin x }
+evalExpr (FCall "asin" _)     = Left "asin(x): invalid argument count"
 
-evalExpr (FCall "acos" [x])   = acos $ evalExpr x
-evalExpr (FCall "acos" _)     = IVal 0
+evalExpr (FCall "acos" [mx])  = do { x <- evalExpr mx; Right $ acos x }
+evalExpr (FCall "acos" _)     = Left "acos(x): invalid argument count"
 
-evalExpr (FCall "atan" [x])   = atan $ evalExpr x
-evalExpr (FCall "atan" _)     = IVal 0
+evalExpr (FCall "atan" [mx])  = do { x <- evalExpr mx; Right $ atan x }
+evalExpr (FCall "atan" _)     = Left "atan(x): invalid argument count"
 
-evalExpr (FCall "sinh" [x])    = sinh $ evalExpr x
-evalExpr (FCall "sinh" _)      = IVal 0
+evalExpr (FCall "sinh" [mx])  = do { x <- evalExpr mx; Right $ sinh x }
+evalExpr (FCall "sinh" _)     = Left "sinh(x): invalid argument count"
 
-evalExpr (FCall "cosh" [x])    = cosh $ evalExpr x
-evalExpr (FCall "cosh" _)      = IVal 0
+evalExpr (FCall "cosh" [mx])  = do { x <- evalExpr mx; Right $ cosh x }
+evalExpr (FCall "cosh" _)     = Left "cosh(x): invalid argument count"
 
-evalExpr (FCall "tanh" [x])    = tanh $ evalExpr x
-evalExpr (FCall "tanh" _)      = IVal 0
+evalExpr (FCall "tanh" [mx])  = do { x <- evalExpr mx; Right $ tanh x }
+evalExpr (FCall "tanh" _)     = Left "tanh(x): invalid argument count"
 
-evalExpr (FCall "asinh" [x])   = asinh $ evalExpr x
-evalExpr (FCall "asinh" _)     = IVal 0
+evalExpr (FCall "asinh" [mx]) = do { x <- evalExpr mx; Right $ asinh x }
+evalExpr (FCall "asinh" _)     = Left "asinh(x): invalid argument count"
 
-evalExpr (FCall "acosh" [x])   = acosh $ evalExpr x
-evalExpr (FCall "acosh" _)     = IVal 0
+evalExpr (FCall "acosh" [mx]) = do { x <- evalExpr mx; Right $ acosh x }
+evalExpr (FCall "acosh" _)     = Left "acosh(x): invalid argument count"
 
-evalExpr (FCall "atanh" [x])   = atanh $ evalExpr x
-evalExpr (FCall "atanh" _)     = IVal 0
+evalExpr (FCall "atanh" [mx]) = do { x <- evalExpr mx; Right $ atanh x }
+evalExpr (FCall "atanh" _)     = Left "atanh(x): invalid argument count"
 
-evalExpr (FCall _ _)          = IVal 0
+evalExpr (FCall _ _)          = Left "User-defined functions are not supported"
 
--- TODO: implement
-evalExpr (Var "pi")           = FVal pi
-evalExpr (Var name)           = IVal 0
+evalExpr (Var name)           = Left "Variables are not supported"
+
+evalExpr e                    = Left $ "failed to evaluate `" ++ (show e) ++ "`"
+

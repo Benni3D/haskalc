@@ -31,8 +31,7 @@ import Eval
 import Expr
 
 run :: Expr -> [Char]
-run (Error e)        = "Error: " ++ e
-run e                = show $ evalExpr e
+run e = showEvalResult $ evalExpr e
 
 loop :: IO ()
 
