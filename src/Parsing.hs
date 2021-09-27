@@ -20,7 +20,13 @@ import Data.Char
 import Number
 import Util
 
-data Expr = Val Number | Paren Expr | Unary Char Expr | Binary Expr Char Expr | Error [Char]
+data Expr   = Val Number
+            | Var [Char]
+            | FCall [Char] [Expr]
+            | Paren Expr
+            | Unary Char Expr
+            | Binary Expr Char Expr
+            | Error [Char]
 
 showExpr :: Expr -> [Char]
 showExpr (Val n)        = show n
@@ -28,7 +34,6 @@ showExpr (Paren e)      = "(" ++ (showExpr e) ++ ")"
 showExpr (Unary c e)    = c : (showExpr e)
 showExpr (Binary x c y) = (showExpr x) ++ [' ', c, ' '] ++ (showExpr y)
 
--- TODO: Extend to parsing decimals
 do_parse_int :: [Char] -> (Maybe INumber, [Char])
 do_parse_int []                     =  (Nothing, [])
 do_parse_int (x:xs)  | xs == []     =  (from_digit x, [])
@@ -85,8 +90,48 @@ parse_float s =
 parse_num :: [Char] -> (Expr, [Char])
 parse_num s = parse_float s
 
-
+do_parse_name :: [Char] -> ([Char], [Char])
+do_parse_name []     = ([], [])
+do_parse_name (x:xs) | isAlphaNum x = (x : (fst $ do_parse_name xs), snd $ do_parse_name xs)
+                     | otherwise    = ([], (x:xs))
 do_parse_expr :: [Char] -> (Expr, [Char])
+
+parse_fparams :: [Char] -> Bool -> (Maybe [Expr], [Char])
+parse_fparams (')':xs) _      = (Just [], xs)
+parse_fparams (',':xs) False  =
+   case parse_fparams rs False of
+   (Nothing, rs2)    -> (Nothing, rs2)
+   (Just args, rs2)  -> (Just $ e : args, rs2)
+   where
+      (e, rs) = do_parse_expr xs
+parse_fparams s True          =
+   case parse_fparams rs False of
+   (Nothing, rs2)    -> (Nothing, rs2)
+   (Just args, rs2)  -> (Just $ e : args, rs2)
+   where
+      (e, rs) = do_parse_expr s
+
+parse_fparams (x:xs) b        | isSpace x = parse_fparams xs b
+                              | otherwise = (Nothing, x:xs)
+
+parse_name :: [Char] -> (Expr, [Char])
+parse_name s =
+   case skip_ws $ snd tp of 
+      ('(':rs)    -> case parse_fparams rs True of
+         (Nothing, rs2)    -> (Error "failed to parse parameters", rs2)
+         (Just args, rs2)  -> (FCall (fst tp) args, rs2)
+      r           -> (Var $ fst tp, r)
+      where
+         tp = do_parse_name s
+
+
+parse_prim :: [Char] -> (Expr, [Char])
+parse_prim []     = (Error "failed to parse primitive", [])
+parse_prim (x:xs) | isSpace x    = parse_prim xs
+                  | isDigit x    = parse_num (x:xs)
+                  | isAlpha x    = parse_name (x:xs)
+                  | otherwise    = (Error $ "invalid input character '" ++ [x] ++ "'", (x:xs))
+
 
 -- parse '(' `expr` ')'
 match_paren :: (Expr, [Char]) -> (Expr, [Char])
@@ -99,7 +144,7 @@ match_paren (e, r:rs)      | isSpace r = match_paren (e, rs)
 parse_paren :: [Char] -> (Expr, [Char])
 parse_paren (x:xs)   | isSpace x    = parse_paren xs
                      | x == '('     = match_paren $ do_parse_expr xs
-                     | otherwise    = parse_num $ x:xs
+                     | otherwise    = parse_prim $ x:xs
       
 parse_exp :: [Char] -> (Expr, [Char])
 

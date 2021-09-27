@@ -19,14 +19,38 @@ module Eval where
 import Parsing
 import Number
 
-evalExpr :: Expr -> Number
-evalExpr (Val n)           = n
-evalExpr (Paren e)         = evalExpr e
-evalExpr (Unary '+' e)     = evalExpr e
-evalExpr (Unary '-' e)     = -(evalExpr e)
-evalExpr (Binary l '+' r)  = (evalExpr l) + (evalExpr r)
-evalExpr (Binary l '-' r)  = (evalExpr l) - (evalExpr r)
-evalExpr (Binary l '*' r)  = (evalExpr l) * (evalExpr r)
-evalExpr (Binary l '/' r)  = (evalExpr l) / (evalExpr r)
-evalExpr (Binary l '%' r)  = rem (evalExpr l) (evalExpr r)
-evalExpr (Binary l '^' r)  = (evalExpr l) ** (evalExpr r)
+evalExpr :: Expr ->  Number
+evalExpr (Val n)              = n
+evalExpr (Paren e)            = evalExpr e
+evalExpr (Unary '+' e)        = evalExpr e
+evalExpr (Unary '-' e)        = -(evalExpr e)
+evalExpr (Binary l '+' r)     = (evalExpr l) + (evalExpr r)
+evalExpr (Binary l '-' r)     = (evalExpr l) - (evalExpr r)
+evalExpr (Binary l '*' r)     = (evalExpr l) * (evalExpr r)
+evalExpr (Binary l '/' r)     = (evalExpr l) / (evalExpr r)
+evalExpr (Binary l '%' r)     = rem (evalExpr l) (evalExpr r)
+evalExpr (Binary l '^' r)     = (evalExpr l) ** (evalExpr r)
+
+evalExpr (FCall "sin" [x])    = sin $ evalExpr x
+evalExpr (FCall "sin" _)      = IVal 0
+
+evalExpr (FCall "cos" [x])    = cos $ evalExpr x
+evalExpr (FCall "cos" _)      = IVal 0
+
+evalExpr (FCall "tan" [x])    = tan $ evalExpr x
+evalExpr (FCall "tan" _)      = IVal 0
+
+evalExpr (FCall "asin" [x])   = sin $ evalExpr x
+evalExpr (FCall "asin" _)     = IVal 0
+
+evalExpr (FCall "acos" [x])   = cos $ evalExpr x
+evalExpr (FCall "acos" _)     = IVal 0
+
+evalExpr (FCall "atan" [x])   = tan $ evalExpr x
+evalExpr (FCall "atan" _)     = IVal 0
+
+evalExpr (FCall _ _)          = IVal 0
+
+-- TODO: implement
+evalExpr (Var "pi")           = FVal pi
+evalExpr (Var name)           = IVal 0
