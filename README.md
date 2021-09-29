@@ -22,3 +22,4 @@ Changing the installation prefix can be done by setting the ```PREFIX=/path/to/p
 ## TODO
 * Add a section in the man page about the funcitons.
 * Add user-defined functions
+* Add man page to stuerz.xyz
