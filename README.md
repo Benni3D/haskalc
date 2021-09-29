@@ -18,3 +18,6 @@ This is my preferred "Hello World"-program when learning a new programming langu
 ## Installation
 ```sudo make install```<br>
 Changing the installation prefix can be done by setting the ```PREFIX=/path/to/prefix``` make variable.
+
+## TODO
+- Add a section in the man page about the funcitons.
