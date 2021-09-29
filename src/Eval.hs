@@ -33,9 +33,17 @@ do_binary f l r = do
    my <- evalExpr r
    return $ mx >>= (\x -> my >>= (\y -> Right $ f x y))
 
-do_unary_fcall :: String -> (Number -> Number) -> [Expr] -> EvalContext EvalResult
-do_unary_fcall _ f [e] = do { mx <- evalExpr e; return $ mx >>= (\x -> Right $ f x) }
-do_unary_fcall n _ _   = return $ Left $ n ++ "(x): invalid argument count"
+do_fcall1 :: String -> (Number -> Number) -> [Expr] -> EvalContext EvalResult
+do_fcall1 _ f [e] = do { mx <- evalExpr e; return $ mx >>= (\x -> Right $ f x) }
+do_fcall1 n _ _   = return $ Left $ n ++ "(x): invalid argument count"
+
+do_fcall2 :: String -> (Number -> Number -> Number) -> [Expr] -> EvalContext EvalResult
+do_fcall2 _ f [l, r] = do
+   mx <- evalExpr l
+   my <- evalExpr r
+   return $ mx >>= (\x -> my >>= (\y -> Right $ f x y))
+do_fcall2 n _ _      = return $ Left $ n ++ "(x, y): invalid argument count"
+
 
 evalExpr :: Expr -> EvalContext EvalResult
 evalExpr (Error msg)          = return $ Left msg
@@ -58,18 +66,27 @@ evalExpr (Binary (Var name) '=' r) = do
                                     return $ Right v
 evalExpr (Binary l '=' _)     = return $ Left $ "cannot assign to `" ++ (show l) ++ "`"
 
-evalExpr (FCall "sin" a)      = do_unary_fcall "sin" sin a
-evalExpr (FCall "cos" a)      = do_unary_fcall "cos" cos a
-evalExpr (FCall "tan" a)      = do_unary_fcall "tan" tan a
-evalExpr (FCall "sinh" a)     = do_unary_fcall "sinh" sinh a
-evalExpr (FCall "cosh" a)     = do_unary_fcall "cosh" cosh a
-evalExpr (FCall "tanh" a)     = do_unary_fcall "tanh" tanh a
-evalExpr (FCall "asin" a)     = do_unary_fcall "asin" asin a
-evalExpr (FCall "acos" a)     = do_unary_fcall "acos" acos a
-evalExpr (FCall "atan" a)     = do_unary_fcall "atan" atan a
-evalExpr (FCall "asinh" a)    = do_unary_fcall "asinh" asinh a
-evalExpr (FCall "acosh" a)    = do_unary_fcall "acosh" acosh a
-evalExpr (FCall "atanh" a)    = do_unary_fcall "atanh" atanh a
+evalExpr (FCall "sin"   a)    = do_fcall1 "sin"    sin            a
+evalExpr (FCall "cos"   a)    = do_fcall1 "cos"    cos            a
+evalExpr (FCall "tan"   a)    = do_fcall1 "tan"    tan            a
+evalExpr (FCall "sinh"  a)    = do_fcall1 "sinh"   sinh           a
+evalExpr (FCall "cosh"  a)    = do_fcall1 "cosh"   cosh           a
+evalExpr (FCall "tanh"  a)    = do_fcall1 "tanh"   tanh           a
+evalExpr (FCall "asin"  a)    = do_fcall1 "asin"   asin           a
+evalExpr (FCall "acos"  a)    = do_fcall1 "acos"   acos           a
+evalExpr (FCall "atan"  a)    = do_fcall1 "atan"   atan           a
+evalExpr (FCall "asinh" a)    = do_fcall1 "asinh"  asinh          a
+evalExpr (FCall "acosh" a)    = do_fcall1 "acosh"  acosh          a
+evalExpr (FCall "atanh" a)    = do_fcall1 "atanh"  atanh          a
+evalExpr (FCall "sqrt"  a)    = do_fcall1 "sqrt"   sqrt           a
+evalExpr (FCall "log"   a)    = do_fcall1 "log"    log            a
+evalExpr (FCall "log2"  a)    = do_fcall1 "log2"   (logBase 2)    a
+evalExpr (FCall "log10" a)    = do_fcall1 "log10"  (logBase 10)   a
+evalExpr (FCall "ceil"  a)    = do_fcall1 "ceil"   ceiling        a
+evalExpr (FCall "floor" a)    = do_fcall1 "floor"  floor          a
+evalExpr (FCall "round" a)    = do_fcall1 "round"  round          a
+evalExpr (FCall "gcd"   a)    = do_fcall2 "gcd"    gcd            a
+evalExpr (FCall "lcm"   a)    = do_fcall2 "lcm"    lcm            a
 
 evalExpr (FCall _ _)          = return $ Left "User-defined functions are not supported"
 

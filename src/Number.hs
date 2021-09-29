@@ -69,6 +69,12 @@ instance Fractional Number where
    (/) (FVal a) (IVal b)      = FVal $ a / (realToFrac b)
    (/) (FVal a) (FVal b)      = FVal $ a / b
 
+instance RealFrac Number where
+   properFraction (FVal x)    = (b, FVal frac)
+      where
+         (b, frac) = properFraction x
+   properFraction (IVal x)    = properFraction $ realToFrac x
+
 instance Floating Number where
    pi                         = FVal pi
 
