@@ -84,27 +84,28 @@ evalExpr (Binary l '=' _)     = return $ Left $ "cannot assign to `" ++ (show l)
 
 -- Built-in functions
 
-evalExpr (FCall "sin"   a)    = do_fcall1 "sin"    sin            a
-evalExpr (FCall "cos"   a)    = do_fcall1 "cos"    cos            a
-evalExpr (FCall "tan"   a)    = do_fcall1 "tan"    tan            a
-evalExpr (FCall "sinh"  a)    = do_fcall1 "sinh"   sinh           a
-evalExpr (FCall "cosh"  a)    = do_fcall1 "cosh"   cosh           a
-evalExpr (FCall "tanh"  a)    = do_fcall1 "tanh"   tanh           a
-evalExpr (FCall "asin"  a)    = do_fcall1 "asin"   asin           a
-evalExpr (FCall "acos"  a)    = do_fcall1 "acos"   acos           a
-evalExpr (FCall "atan"  a)    = do_fcall1 "atan"   atan           a
-evalExpr (FCall "asinh" a)    = do_fcall1 "asinh"  asinh          a
-evalExpr (FCall "acosh" a)    = do_fcall1 "acosh"  acosh          a
-evalExpr (FCall "atanh" a)    = do_fcall1 "atanh"  atanh          a
-evalExpr (FCall "sqrt"  a)    = do_fcall1 "sqrt"   sqrt           a
-evalExpr (FCall "log"   a)    = do_fcall1 "log"    log            a
-evalExpr (FCall "log2"  a)    = do_fcall1 "log2"   (logBase 2)    a
-evalExpr (FCall "log10" a)    = do_fcall1 "log10"  (logBase 10)   a
-evalExpr (FCall "ceil"  a)    = do_fcall1 "ceil"   ceiling        a
-evalExpr (FCall "floor" a)    = do_fcall1 "floor"  floor          a
-evalExpr (FCall "round" a)    = do_fcall1 "round"  round          a
-evalExpr (FCall "gcd"   a)    = do_fcall2 "gcd"    gcd            a
-evalExpr (FCall "lcm"   a)    = do_fcall2 "lcm"    lcm            a
+evalExpr (FCall "sin"      a) = do_fcall1 "sin"       sin            a
+evalExpr (FCall "cos"      a) = do_fcall1 "cos"       cos            a
+evalExpr (FCall "tan"      a) = do_fcall1 "tan"       tan            a
+evalExpr (FCall "sinh"     a) = do_fcall1 "sinh"      sinh           a
+evalExpr (FCall "cosh"     a) = do_fcall1 "cosh"      cosh           a
+evalExpr (FCall "tanh"     a) = do_fcall1 "tanh"      tanh           a
+evalExpr (FCall "asin"     a) = do_fcall1 "asin"      asin           a
+evalExpr (FCall "acos"     a) = do_fcall1 "acos"      acos           a
+evalExpr (FCall "atan"     a) = do_fcall1 "atan"      atan           a
+evalExpr (FCall "asinh"    a) = do_fcall1 "asinh"     asinh          a
+evalExpr (FCall "acosh"    a) = do_fcall1 "acosh"     acosh          a
+evalExpr (FCall "atanh"    a) = do_fcall1 "atanh"     atanh          a
+evalExpr (FCall "sqrt"     a) = do_fcall1 "sqrt"      sqrt           a
+evalExpr (FCall "log"      a) = do_fcall1 "log"       log            a
+evalExpr (FCall "log2"     a) = do_fcall1 "log2"      (logBase 2)    a
+evalExpr (FCall "log10"    a) = do_fcall1 "log10"     (logBase 10)   a
+evalExpr (FCall "ceil"     a) = do_fcall1 "ceil"      ceiling        a
+evalExpr (FCall "floor"    a) = do_fcall1 "floor"     floor          a
+evalExpr (FCall "truncate" a) = do_fcall1 "truncate"  truncate       a
+evalExpr (FCall "round"    a) = do_fcall1 "round"     round          a
+evalExpr (FCall "gcd"      a) = do_fcall2 "gcd"       gcd            a
+evalExpr (FCall "lcm"      a) = do_fcall2 "lcm"       lcm            a
 
 -- Built-in variables
 evalExpr (Var "pi")           = return $ Right $ FVal pi

@@ -39,9 +39,16 @@ and these basic \fIoperators\fR:
 .RS 5
 = (assignment)
 .RE
-.PP
-It also supports variables (like pi) and functions (SEE \fBBUILT-IN FUNCTIONS\fR).
+.RS 8
+Usage:
 .RE
+.RS 10
+x = 10 (variable)
+.RE
+.RS 10
+f(x) = 2 * x (function)
+.RE
+.PP
 To exit the calculator write
 .I exit
 or send an EOF-character with
@@ -121,6 +128,11 @@ towards positive infinity
 \    - round
 .I x
 twoards negative infinity
+.RE
+.B truncate\fR(\fIx\fR)
+\ - round
+.I x
+towards 0
 .RE
 .B round\fR(\fIx\fR)
 \    - round
