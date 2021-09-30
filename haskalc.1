@@ -40,12 +40,104 @@ and these basic \fIoperators\fR:
 = (assignment)
 .RE
 .PP
-It also supports variables (like pi) and functions (eg. sin(10)).
+It also supports variables (like pi) and functions (SEE \fBBUILT-IN FUNCTIONS\fR).
 .RE
 To exit the calculator write
 .I exit
 or send an EOF-character with
 .I Ctrl+D\fR.
+
+.SH BUILT-IN FUNCTIONS
+.B sin\fR(\fIx\fR)
+\      - compute the sine of
+.I x
+.RE
+.B cos\fR(\fIx\fR)
+\      - compute the cosine of
+.I x
+.RE
+.B tan\fR(\fIx\fR)
+\      - compute the tangent of
+.I x
+.RE
+.B asin\fR(\fIx\fR)
+\     - compute the arc sine of
+.I x
+.RE
+.B acos\fR(\fIx\fR)
+\     - compute the arc cosine of
+.I x
+.RE
+.B atan\fR(\fIx\fR)
+\     - compute the arc tangent of
+.I x
+.RE
+.B sinh\fR(\fIx\fR)
+\     - compute the hyperbolic sine of
+.I x
+.RE
+.B cosh\fR(\fIx\fR)
+\     - compute the hyperbolic cosine of
+.I x
+.RE
+.B tanh\fR(\fIx\fR)
+\     - compute the hyperbolic tangent of
+.I x
+.RE
+.B asinh\fR(\fIx\fR)
+\    - compute the area hyperbolic sine of
+.I x
+.RE
+.B acosh\fR(\fIx\fR)
+\    - compute the area hyperbolic cosine of
+.I x
+.RE
+.B atanh\fR(\fIx\fR)
+\    - compute the area hyperbolic tangent of
+.I x
+.RE
+.B sqrt\fR(\fIx\fR)
+\     - compute the square root of
+.I x
+.RE
+.B log\fR(\fIx\fR)
+\      - compute the natural logarithm of
+.I x
+.RE
+.B log10\fR(\fIx\fR)
+\    - compute the common (base-10) logarithm of
+.I x
+.RE
+.B log2\fR(\fIx\fR)
+\     - compute the binary (base-2) logarithm of
+.I x
+.RE
+.B ceil\fR(\fIx\fR)
+\     - round
+.I x
+towards positive infinity
+.RE
+.B floor\fR(\fIx\fR)
+\    - round
+.I x
+twoards negative infinity
+.RE
+.B round\fR(\fIx\fR)
+\    - round
+.I x
+to the nearest integer value
+.RE
+.B gcd\fR(\fIx\fR, \fIy\fR)
+\   - compute the greatest common divisor of
+.I x
+and
+.I y
+.RE
+.B lcm\fR(\fIx\fR, \fIy\fR)
+\   - compute the least common multiple of
+.I x
+and
+.I y
 
 .PP
 .SH COPYRIGHT
