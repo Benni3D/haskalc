@@ -1,6 +1,7 @@
 # haskalc
 A small calculator written in Haskell.<br>
-This is my preferred "Hello World"-program when learning a new programming language.
+This is my preferred "Hello World"-program when learning a new programming language.<br>
+Click [here](https://stuerz.xyz/generic-haskalc.1.html) to view the man page online.
 
 ## Dependencies
 - The GHC compiler (or compatible)
@@ -22,4 +23,3 @@ Changing the installation prefix can be done by setting the ```PREFIX=/path/to/p
 ## TODO
 * Add a section in the man page about the funcitons.
 * Add user-defined functions
-* Add man page to stuerz.xyz
