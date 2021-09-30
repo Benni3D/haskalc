@@ -90,6 +90,6 @@ main = do
    installHandler sigINT (Catch (handle_sigINT)) (Just emptySignalSet)
    putStrLn "registered"
 #endif
-   loop []
+   loop emptyEvalEnv
 
 
