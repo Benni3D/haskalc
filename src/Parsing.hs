@@ -21,14 +21,28 @@ import Number
 import Util
 import Expr
 
-do_parse_int :: [Char] -> (Maybe INumber, [Char])
-do_parse_int []                     =  (Nothing, [])
-do_parse_int (x:xs)  | xs == []     =  (from_digit x, [])
-                     | otherwise    =  case from_digit x of
-                                       Nothing  -> (Nothing, (x:xs))
-                                       Just d   -> case do_parse_int xs of
-                                                   (Nothing, r)   -> (Just d, xs)
-                                                   (Just n, r)    -> (Just $ n + (d * 10^(num_digits n)), r)
+-- do_parse_int :: [Char] -> (Maybe INumber, [Char])
+--do_parse_int []                     =  (Nothing, [])
+--do_parse_int (x:xs)  | xs == []     =  (from_digit x, [])
+--                     | otherwise    =  case from_digit x of
+--                                       Nothing  -> (Nothing, (x:xs))
+--                                       Just d   -> case do_parse_int xs of
+--                                                   (Nothing, r)   -> (Just d, xs)
+--                                                   (Just n, r)    -> (Just $ n + (d * 10^(num_digits n)), r)
+
+do_actual_parse_int :: Maybe INumber -> [Char] -> (Maybe INumber, [Char])
+do_actual_parse_int pre []              = (pre, [])
+do_actual_parse_int Nothing (x:xs)      =
+   case from_digit x of
+   Nothing  -> (Nothing, (x:xs))
+   Just d   -> do_actual_parse_int (Just d) xs
+
+do_actual_parse_int (Just pre) (x:xs)   =
+   case from_digit x of
+   Nothing  -> (Just pre, (x:xs))
+   Just d   -> do_actual_parse_int (Just $ d + (10 * pre)) xs
+
+do_parse_int str = do_actual_parse_int Nothing str
 
 do_parse_float :: [Char] -> (Maybe Number, [Char])
 do_parse_float s =
@@ -84,6 +98,7 @@ do_parse_name (x:xs) | isAlphaNum x = (x : (fst $ do_parse_name xs), snd $ do_pa
 do_parse_expr :: [Char] -> (Expr, [Char])
 
 parse_fparams :: [Char] -> Bool -> (Maybe [Expr], [Char])
+parse_fparams [] _            = (Nothing, [])
 parse_fparams (')':xs) _      = (Just [], xs)
 parse_fparams (',':xs) False  =
    case parse_fparams rs False of

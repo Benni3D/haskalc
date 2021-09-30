@@ -37,3 +37,6 @@ skip_ws []     = []
 skip_ws (x:xs) | isSpace x = skip_ws xs
                | otherwise = x:xs
 
+printIfNotEmpty :: String -> IO ()
+printIfNotEmpty ""   = return ()
+printIfNotEmpty str  = putStrLn str

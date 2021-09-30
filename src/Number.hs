@@ -20,7 +20,7 @@ module Number where
 type INumber = Integer
 type FNumber = Double
 
-data Number = IVal INumber | FVal FNumber
+data Number = IVal INumber | FVal FNumber | EmptyNumber
 
 instance Num Number where
    (+) (IVal x) (IVal y)      = IVal $ x + y
@@ -138,6 +138,7 @@ instance Ord Number where
 instance Show Number where
    show (IVal x)              = show x
    show (FVal x)              = show x
+   show EmptyNumber           = ""
 
 pow10 :: Integer -> Number
 pow10 e  | e >= 0    = IVal $ 10 ^ e

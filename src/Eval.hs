@@ -16,6 +16,7 @@
  -}
 
 module Eval where
+import Control.Monad.State
 import Context
 import Number
 import Expr
@@ -57,14 +58,31 @@ evalExpr (Binary l '*' r)     = do_binary (*) l r
 evalExpr (Binary l '/' r)     = do_binary (/) l r
 evalExpr (Binary l '%' r)     = do_binary rem l r
 evalExpr (Binary l '^' r)     = do_binary (**) l r
+
+-- Assignment to Variable
+
 evalExpr (Binary (Var name) '=' r) = do
-                              mv <- evalExpr r
-                              case mv of
-                                 (Left msg)  -> return $ Left msg
-                                 (Right v)   -> do
-                                    envAddVar (name,v)
-                                    return $ Right v
+   mv <- evalExpr r
+   case mv of
+      (Left msg)  -> return $ Left msg
+      (Right v)   -> do
+         envAddVar (name,v)
+         return $ Right EmptyNumber
+
+-- Definition of Function
+
+evalExpr (Binary (FCall name args) '=' r) = do
+   case el_to_pl args of
+      Nothing  -> return $ Left $ "failed to parse argument list of " ++ name ++ "."
+      Just a   -> do
+         envAddFunc (name, a, r)
+         return $ Right $ EmptyNumber
+
+-- Assignment to invalid
+
 evalExpr (Binary l '=' _)     = return $ Left $ "cannot assign to `" ++ (show l) ++ "`"
+
+-- Built-in functions
 
 evalExpr (FCall "sin"   a)    = do_fcall1 "sin"    sin            a
 evalExpr (FCall "cos"   a)    = do_fcall1 "cos"    cos            a
@@ -88,9 +106,19 @@ evalExpr (FCall "round" a)    = do_fcall1 "round"  round          a
 evalExpr (FCall "gcd"   a)    = do_fcall2 "gcd"    gcd            a
 evalExpr (FCall "lcm"   a)    = do_fcall2 "lcm"    lcm            a
 
-evalExpr (FCall _ _)          = return $ Left "User-defined functions are not supported"
-
+-- Built-in variables
 evalExpr (Var "pi")           = return $ Right $ FVal pi
+
+-- Function Call to user-defined function
+
+evalExpr (FCall name a)       = do
+   mf <- envGetFunc name
+   envPushContext
+   case mf of
+      Nothing  -> return $ Left $ "No such function " ++ name ++ " exists."
+      Just f   -> evalFunc f a
+
+-- User-defined variables
 
 evalExpr (Var name)           = do
    mv <- envGetVar name
@@ -98,6 +126,29 @@ evalExpr (Var name)           = do
       Nothing  -> return $ Left $ "Variable " ++ name ++ " does not exist."
       Just v   -> return $ Right v
 
+-- Invalid/Unsupported expression
 
 evalExpr e                    = return $ Left $ "failed to evaluate `" ++ (show e) ++ "`"
 
+-- Helper functions
+
+evalParams :: [(String, Expr)] -> EvalContext (Either String [(String, Number)])
+evalParams []           = return $ Right []
+evalParams ((n,e):xs)   = do
+   mv <- evalExpr e
+   case mv of
+      Left msg -> return $ Left msg
+      Right v  -> evalParams xs >>= (\mr -> return $ mr >>= (\r -> Right $ (n, v) : r))
+
+evalFunc :: Function -> [Expr] -> EvalContext EvalResult
+evalFunc (n,p,e) args   | (length args) /= (length p) =
+                           return $ Left $ (showFuncDecl (n,p,e)) ++ ": invalid argument count."
+                        | otherwise = do
+   err <- evalParams $ zip p args
+   case err of
+      Left msg -> return $ Left msg
+      Right p  -> do
+         envAddVars p
+         val <- evalExpr e
+         envPopContext
+         return val

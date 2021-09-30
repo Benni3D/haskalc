@@ -22,23 +22,68 @@ import Expr
 
 type Variable = (String, Number)
 type Function = (String, [String], Expr)
-type EvalEnv = ([Variable], [Function])
+type SubEvalEnv = ([Variable], [Function])
+type EvalEnv = ([Variable], [Function], [SubEvalEnv])
 type EvalContext = State EvalEnv
 
 envAddVar :: Variable -> EvalContext Number
 envAddVar v = do
-   (vars, funcs) <- get
-   put $ (internal_addVar v vars, funcs)
+   (vars, funcs, stack) <- get
+   put $ (internal_addVar v vars, funcs, stack)
    return (snd v)
+
+envAddVars :: [Variable] -> EvalContext ()
+envAddVars []     = return ()
+envAddVars (x:xs) = do
+   envAddVar x
+   envAddVars xs
+   return ()
 
 envGetVar :: String -> EvalContext (Maybe Number)
 envGetVar name = do
-   (vars, _) <- get
+   (vars, _, _) <- get
    return $ internal_findVar name vars
 
+envAddFunc :: Function -> EvalContext ()
+envAddFunc f = do
+   (vars, funcs, stack) <- get
+   put $ (vars, internal_addFunc f funcs, stack)
+   return ()
+
+envGetFunc :: String -> EvalContext (Maybe Function)
+envGetFunc name = do
+   (_, funcs, _) <- get
+   return $ internal_findFunc name funcs
+
+envPushContext :: EvalContext ()
+envPushContext = do
+   (vars, funcs, stack) <- get
+   put (vars, funcs, (vars, funcs) : stack)
+   return ()
+
+envPopContext :: EvalContext ()
+envPopContext = do
+   env <- get
+   put $ internal_popEnv env
+   return ()
 
 emptyEvalEnv :: EvalEnv
-emptyEvalEnv = ([], [])
+emptyEvalEnv = ([], [], [])
+
+
+showFuncDecl :: Function -> String
+showFuncDecl (name, [], _)    = name ++ "()"
+showFuncDecl (name, (x:xs), _)= name ++ "(" ++ x ++ (internal_showFuncParams xs) ++ ")"
+
+-- INTERNAL FUNCTIONS
+
+internal_popEnv :: EvalEnv -> EvalEnv
+internal_popEnv (_, _, [])                      = error "stack is empty"
+internal_popEnv (_, _, (vars, funcs) : stack)   = (vars, funcs, stack)
+
+internal_showFuncParams :: [String] -> String
+internal_showFuncParams []       = ""
+internal_showFuncParams (x:xs)   = (", " ++ x) ++ (internal_showFuncParams xs)
 
 
 internal_findVar :: String -> [Variable] -> Maybe Number
@@ -49,5 +94,14 @@ internal_findVar name ((n,v):xs) | n == name = Just v
 internal_addVar :: Variable -> [Variable] -> [Variable]
 internal_addVar v []                   = [v]
 internal_addVar (n, v) ((en, ev):xs)   | n == en   = (n, v) : xs
-                                       | otherwise = internal_addVar (n, v) xs
+                                       | otherwise = (en, ev) : internal_addVar (n, v) xs
 
+internal_findFunc :: String -> [Function] -> Maybe Function
+internal_findFunc name []              = Nothing
+internal_findFunc name ((n,p,e):xs)    | name == n       = Just (n,p,e)
+                                       | otherwise       = internal_findFunc name xs
+
+internal_addFunc :: Function -> [Function] -> [Function]
+internal_addFunc f []                     = [f]
+internal_addFunc (n,p,e) ((nx,px,ex):xs)  | n == nx      = (n,p,e) : xs
+                                          | otherwise    = (nx,px,ex) : internal_addFunc (n,p,e) xs

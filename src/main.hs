@@ -31,6 +31,7 @@ import Context
 import Parsing
 import Eval
 import Expr
+import Util
 
 do_eval :: Expr -> EvalContext (EvalEnv, EvalResult)
 do_eval e = do
@@ -59,7 +60,7 @@ loop env = do
       Just line   -> do
          expr <- return $ parse_expr line
          (new_env, str) <- return $ run env expr
-         putStrLn str
+         printIfNotEmpty str
          loop new_env
 #else
 loop env = do
@@ -72,7 +73,7 @@ loop env = do
       line     -> do
          expr <- return $ parse_expr line
          (new_env, str) <- return $ run env expr
-         putStrLn str
+         printfIfNotEmpty str
          loop new_env
 #endif
 

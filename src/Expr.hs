@@ -21,16 +21,28 @@ import Number
 
 
 data Expr   = Val Number
-            | Var [Char]
-            | FCall [Char] [Expr]
+            | Var String
+            | FCall String [Expr]
             | Paren Expr
             | Unary Char Expr
             | Binary Expr Char Expr
-            | Error [Char]
+            | Error String
 
 show2 :: [Expr] -> [Char]
 show2 []       = ""
 show2 (x:xs)   = "," ++ (show x) ++ (show2 xs)
+
+internal_e2p :: Expr -> Maybe String
+internal_e2p (Var name) = Just name
+internal_e2p _          = Nothing
+
+-- expr list to parameter list
+el_to_pl :: [Expr] -> Maybe [String]
+el_to_pl []       = Just []
+el_to_pl (x:xs)   = do
+   l <- internal_e2p x
+   r <- el_to_pl xs
+   return $ l : r
 
 instance Show Expr where
    show (Val n)            = show n
