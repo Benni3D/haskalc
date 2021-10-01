@@ -20,7 +20,7 @@ module Number where
 type INumber = Integer
 type FNumber = Double
 
-data Number = INum INumber | FNum FNumber | EmptyNumber
+data Number = INum INumber | FNum FNumber
 
 instance Num Number where
    (+) (INum x) (INum y)      = INum $ x + y
@@ -138,7 +138,6 @@ instance Ord Number where
 instance Show Number where
    show (INum x)              = show x
    show (FNum x)              = show x
-   show EmptyNumber           = ""
 
 pow10 :: Integer -> Number
 pow10 e  | e >= 0    = INum $ 10 ^ e

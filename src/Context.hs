@@ -17,16 +17,16 @@
 
 module Context where
 import Control.Monad.State
-import Number
+import Value
 import Expr
 
-type Variable = (String, Number)
+type Variable = (String, Value)
 type Function = (String, [String], Expr)
 type SubEvalEnv = ([Variable], [Function])
 type EvalEnv = ([Variable], [Function], [SubEvalEnv])
 type EvalContext = State EvalEnv
 
-envAddVar :: Variable -> EvalContext Number
+envAddVar :: Variable -> EvalContext Value
 envAddVar v = do
    (vars, funcs, stack) <- get
    put $ (internal_addVar v vars, funcs, stack)
@@ -39,7 +39,7 @@ envAddVars (x:xs) = do
    envAddVars xs
    return ()
 
-envGetVar :: String -> EvalContext (Maybe Number)
+envGetVar :: String -> EvalContext (Maybe Value)
 envGetVar name = do
    (vars, _, _) <- get
    return $ internal_findVar name vars
@@ -86,7 +86,7 @@ internal_showFuncParams []       = ""
 internal_showFuncParams (x:xs)   = (", " ++ x) ++ (internal_showFuncParams xs)
 
 
-internal_findVar :: String -> [Variable] -> Maybe Number
+internal_findVar :: String -> [Variable] -> Maybe Value
 internal_findVar name []                     = Nothing
 internal_findVar name ((n,v):xs) | n == name = Just v
                                  | otherwise = internal_findVar name xs

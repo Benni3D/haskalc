@@ -19,39 +19,70 @@ module Eval where
 import Control.Monad.State
 import Context
 import Number
+import Value
 import Expr
 
-type EvalResult = Either [Char] Number
+type EvalResult = Either [Char] Value
 
 showEvalResult :: EvalResult -> [Char]
 showEvalResult (Right r)      = show r
 showEvalResult (Left msg)     = "Error: " ++ msg
 
+evalNumber :: Expr -> EvalContext (Either String Number)
+evalNumber e   = do
+   res <- evalExpr e
+   case res of
+      Left msg -> return $ Left msg
+      Right x  ->
+         case x of
+            (NVal n) -> return $ Right n
+            _        -> return $ Left $ "`" ++ (show e) ++ "` is not a number."
+
+evalNumbers :: (Expr, Expr) -> EvalContext (Either String (Number, Number))
+evalNumbers (mx, my) = do
+   res1 <- evalNumber mx
+   res2 <- evalNumber my
+   case res1 of
+      Left msg -> return $ Left msg
+      Right x  ->
+         case res2 of
+            Left msg -> return $ Left msg
+            Right y  -> return $ Right (x, y)
 
 do_binary :: (Number -> Number -> Number) -> Expr -> Expr -> EvalContext EvalResult
 do_binary f l r = do
-   mx <- evalExpr l
-   my <- evalExpr r
-   return $ mx >>= (\x -> my >>= (\y -> Right $ f x y))
+   res <- evalNumbers (l, r)
+   case res of
+      Left s         -> return $ Left s
+      Right (x, y)   -> return $ Right $ NVal $ f x y
 
 do_fcall1 :: String -> (Number -> Number) -> [Expr] -> EvalContext EvalResult
-do_fcall1 _ f [e] = do { mx <- evalExpr e; return $ mx >>= (\x -> Right $ f x) }
+do_fcall1 _ f [e] = do
+   res <- evalNumber e
+   case res of
+      Left msg -> return $ Left msg
+      Right n  -> return $ Right $ NVal $ f n
 do_fcall1 n _ _   = return $ Left $ n ++ "(x): invalid argument count"
 
 do_fcall2 :: String -> (Number -> Number -> Number) -> [Expr] -> EvalContext EvalResult
 do_fcall2 _ f [l, r] = do
-   mx <- evalExpr l
-   my <- evalExpr r
-   return $ mx >>= (\x -> my >>= (\y -> Right $ f x y))
+   res <- evalNumbers (l, r)
+   case res of
+      Left msg    -> return $ Left msg
+      Right (x,y) -> return $ Right $ NVal $ f x y
 do_fcall2 n _ _      = return $ Left $ n ++ "(x, y): invalid argument count"
 
 
 evalExpr :: Expr -> EvalContext EvalResult
 evalExpr (Error msg)          = return $ Left msg
-evalExpr (Val n)              = return $ Right n
+evalExpr (Val n)              = return $ Right $ NVal n
 evalExpr (Paren e)            = evalExpr e
 evalExpr (Unary '+' e)        = evalExpr e
-evalExpr (Unary '-' e)        = do { mx <- evalExpr e; return $ mx >>= (\x -> Right (-x)) }
+evalExpr (Unary '-' e)        = do
+   res <- evalNumber e
+   case res of
+      Left msg -> return $ Left msg
+      Right x  -> return $ Right $ NVal $ -x
 evalExpr (Binary l '+' r)     = do_binary (+) l r
 evalExpr (Binary l '-' r)     = do_binary (-) l r
 evalExpr (Binary l '*' r)     = do_binary (*) l r
@@ -67,7 +98,7 @@ evalExpr (Binary (Var name) '=' r) = do
       (Left msg)  -> return $ Left msg
       (Right v)   -> do
          envAddVar (name,v)
-         return $ Right EmptyNumber
+         return $ Right NoVal
 
 -- Definition of Function
 
@@ -76,7 +107,7 @@ evalExpr (Binary (FCall name args) '=' r) = do
       Nothing  -> return $ Left $ "failed to parse argument list of " ++ name ++ "."
       Just a   -> do
          envAddFunc (name, a, r)
-         return $ Right $ EmptyNumber
+         return $ Right NoVal
 
 -- Assignment to invalid
 
@@ -108,7 +139,7 @@ evalExpr (FCall "gcd"      a) = do_fcall2 "gcd"       gcd            a
 evalExpr (FCall "lcm"      a) = do_fcall2 "lcm"       lcm            a
 
 -- Built-in variables
-evalExpr (Var "pi")           = return $ Right $ FNum pi
+evalExpr (Var "pi")           = return $ Right $ NVal $ FNum pi
 
 -- Function Call to user-defined function
 
@@ -133,7 +164,7 @@ evalExpr e                    = return $ Left $ "failed to evaluate `" ++ (show 
 
 -- Helper functions
 
-evalParams :: [(String, Expr)] -> EvalContext (Either String [(String, Number)])
+evalParams :: [(String, Expr)] -> EvalContext (Either String [(String, Value)])
 evalParams []           = return $ Right []
 evalParams ((n,e):xs)   = do
    mv <- evalExpr e
