@@ -20,126 +20,126 @@ module Number where
 type INumber = Integer
 type FNumber = Double
 
-data Number = IVal INumber | FVal FNumber | EmptyNumber
+data Number = INum INumber | FNum FNumber | EmptyNumber
 
 instance Num Number where
-   (+) (IVal x) (IVal y)      = IVal $ x + y
-   (+) (IVal x) (FVal y)      = FVal $ (realToFrac x) + y
-   (+) (FVal x) (IVal y)      = FVal $ x + (realToFrac y)
-   (+) (FVal x) (FVal y)      = FVal $ x + y
+   (+) (INum x) (INum y)      = INum $ x + y
+   (+) (INum x) (FNum y)      = FNum $ (realToFrac x) + y
+   (+) (FNum x) (INum y)      = FNum $ x + (realToFrac y)
+   (+) (FNum x) (FNum y)      = FNum $ x + y
 
-   (*) (IVal x) (IVal y)      = IVal $ x * y
-   (*) (IVal x) (FVal y)      = FVal $ (realToFrac x) * y
-   (*) (FVal x) (IVal y)      = FVal $ x * (realToFrac y)
-   (*) (FVal x) (FVal y)      = FVal $ x * y
+   (*) (INum x) (INum y)      = INum $ x * y
+   (*) (INum x) (FNum y)      = FNum $ (realToFrac x) * y
+   (*) (FNum x) (INum y)      = FNum $ x * (realToFrac y)
+   (*) (FNum x) (FNum y)      = FNum $ x * y
 
-   abs (IVal x)               = IVal $ abs x
-   abs (FVal x)               = FVal $ abs x
+   abs (INum x)               = INum $ abs x
+   abs (FNum x)               = FNum $ abs x
 
-   signum (IVal x)            = IVal $ signum x
-   signum (FVal x)            = FVal $ signum x
+   signum (INum x)            = INum $ signum x
+   signum (FNum x)            = FNum $ signum x
 
-   negate (IVal x)            = IVal $ -x
-   negate (FVal x)            = FVal $ -x
+   negate (INum x)            = INum $ -x
+   negate (FNum x)            = FNum $ -x
 
-   fromInteger x              = IVal x
+   fromInteger x              = INum x
 
 instance Real Number where
-   toRational (IVal x)        = toRational x
-   toRational (FVal x)        = toRational x
+   toRational (INum x)        = toRational x
+   toRational (FNum x)        = toRational x
 
 instance Enum Number where
-   toEnum x                   = IVal $ toInteger x
+   toEnum x                   = INum $ toInteger x
 
-   fromEnum (IVal x)          = fromEnum x
-   fromEnum (FVal x)          = fromEnum x
+   fromEnum (INum x)          = fromEnum x
+   fromEnum (FNum x)          = fromEnum x
 
 instance Integral Number where
-   quotRem (IVal x) (IVal y)  = (IVal a, IVal b)
+   quotRem (INum x) (INum y)  = (INum a, INum b)
                               where
                                  a = fst $ quotRem x y
                                  b = snd $ quotRem x y
-   toInteger (IVal x)         = x
-   toInteger (FVal x)         = floor x
+   toInteger (INum x)         = x
+   toInteger (FNum x)         = floor x
 
 instance Fractional Number where
-   fromRational x             = FVal $ fromRational x
-   (/) (IVal a) (IVal b)      = FVal $ (realToFrac a) / (realToFrac b)
-   (/) (IVal a) (FVal b)      = FVal $ (realToFrac a) / b
-   (/) (FVal a) (IVal b)      = FVal $ a / (realToFrac b)
-   (/) (FVal a) (FVal b)      = FVal $ a / b
+   fromRational x             = FNum $ fromRational x
+   (/) (INum a) (INum b)      = FNum $ (realToFrac a) / (realToFrac b)
+   (/) (INum a) (FNum b)      = FNum $ (realToFrac a) / b
+   (/) (FNum a) (INum b)      = FNum $ a / (realToFrac b)
+   (/) (FNum a) (FNum b)      = FNum $ a / b
 
 instance RealFrac Number where
-   properFraction (FVal x)    = (b, FVal frac)
+   properFraction (FNum x)    = (b, FNum frac)
       where
          (b, frac) = properFraction x
-   properFraction (IVal x)    = properFraction $ realToFrac x
+   properFraction (INum x)    = properFraction $ realToFrac x
 
 instance Floating Number where
-   pi                         = FVal pi
+   pi                         = FNum pi
 
-   exp (FVal x)               = FVal $ exp x
-   exp (IVal x)               = FVal $ exp $ realToFrac x
+   exp (FNum x)               = FNum $ exp x
+   exp (INum x)               = FNum $ exp $ realToFrac x
 
-   log (FVal x)               = FVal $ log x
-   log (IVal x)               = FVal $ log $ realToFrac x
+   log (FNum x)               = FNum $ log x
+   log (INum x)               = FNum $ log $ realToFrac x
 
-   sin (FVal x)               = FVal $ sin x
-   sin (IVal x)               = FVal $ sin $ realToFrac x
+   sin (FNum x)               = FNum $ sin x
+   sin (INum x)               = FNum $ sin $ realToFrac x
 
-   cos (FVal x)               = FVal $ cos x
-   cos (IVal x)               = FVal $ cos $ realToFrac x
+   cos (FNum x)               = FNum $ cos x
+   cos (INum x)               = FNum $ cos $ realToFrac x
 
-   asin (FVal x)              = FVal $ asin x
-   asin (IVal x)              = FVal $ asin $ realToFrac x
+   asin (FNum x)              = FNum $ asin x
+   asin (INum x)              = FNum $ asin $ realToFrac x
 
-   acos (FVal x)              = FVal $ acos x
-   acos (IVal x)              = FVal $ acos $ realToFrac x
+   acos (FNum x)              = FNum $ acos x
+   acos (INum x)              = FNum $ acos $ realToFrac x
 
-   atan (FVal x)              = FVal $ atan x
-   atan (IVal x)              = FVal $ atan $ realToFrac x
+   atan (FNum x)              = FNum $ atan x
+   atan (INum x)              = FNum $ atan $ realToFrac x
 
-   sinh (FVal x)              = FVal $ sinh x
-   sinh (IVal x)              = FVal $ sinh $ realToFrac x
+   sinh (FNum x)              = FNum $ sinh x
+   sinh (INum x)              = FNum $ sinh $ realToFrac x
 
-   cosh (FVal x)              = FVal $ cosh x
-   cosh (IVal x)              = FVal $ cosh $ realToFrac x
+   cosh (FNum x)              = FNum $ cosh x
+   cosh (INum x)              = FNum $ cosh $ realToFrac x
 
-   asinh (FVal x)             = FVal $ asinh x
-   asinh (IVal x)             = FVal $ asinh $ realToFrac x
+   asinh (FNum x)             = FNum $ asinh x
+   asinh (INum x)             = FNum $ asinh $ realToFrac x
 
-   acosh (FVal x)             = FVal $ acosh x
-   acosh (IVal x)             = FVal $ acosh $ realToFrac x
+   acosh (FNum x)             = FNum $ acosh x
+   acosh (INum x)             = FNum $ acosh $ realToFrac x
 
-   atanh (FVal x)             = FVal $ atanh x
-   atanh (IVal x)             = FVal $ atanh $ realToFrac x
+   atanh (FNum x)             = FNum $ atanh x
+   atanh (INum x)             = FNum $ atanh $ realToFrac x
 
-   (**) (IVal x) (IVal y)     | y >= 0    = IVal $ x ^ y
-                              | otherwise = FVal $ (realToFrac x) ** (realToFrac y)
+   (**) (INum x) (INum y)     | y >= 0    = INum $ x ^ y
+                              | otherwise = FNum $ (realToFrac x) ** (realToFrac y)
 
-   (**) (IVal x) (FVal y)                 = FVal $ (realToFrac x) ** y
-   (**) (FVal x) (IVal y)                 = FVal $ x ** (realToFrac y)
-   (**) (FVal x) (FVal y)                 = FVal $ x ** y
+   (**) (INum x) (FNum y)                 = FNum $ (realToFrac x) ** y
+   (**) (FNum x) (INum y)                 = FNum $ x ** (realToFrac y)
+   (**) (FNum x) (FNum y)                 = FNum $ x ** y
 
 
 instance Eq Number where
-   (==) (IVal x) (IVal y)     = x == y
-   (==) (IVal x) (FVal y)     = (realToFrac x) == y
-   (==) (FVal x) (IVal y)     = x == (realToFrac y)
-   (==) (FVal x) (FVal y)     = x == y
+   (==) (INum x) (INum y)     = x == y
+   (==) (INum x) (FNum y)     = (realToFrac x) == y
+   (==) (FNum x) (INum y)     = x == (realToFrac y)
+   (==) (FNum x) (FNum y)     = x == y
 
 instance Ord Number where
-   (<=) (IVal x) (IVal y)     = x <= y
-   (<=) (IVal x) (FVal y)     = (realToFrac x) <= y
-   (<=) (FVal x) (IVal y)     = x <= (realToFrac y)
-   (<=) (FVal x) (FVal y)     = x <= y
+   (<=) (INum x) (INum y)     = x <= y
+   (<=) (INum x) (FNum y)     = (realToFrac x) <= y
+   (<=) (FNum x) (INum y)     = x <= (realToFrac y)
+   (<=) (FNum x) (FNum y)     = x <= y
    
 
 instance Show Number where
-   show (IVal x)              = show x
-   show (FVal x)              = show x
+   show (INum x)              = show x
+   show (FNum x)              = show x
    show EmptyNumber           = ""
 
 pow10 :: Integer -> Number
-pow10 e  | e >= 0    = IVal $ 10 ^ e
-         | otherwise = FVal $ 10.0 ** (realToFrac e)
+pow10 e  | e >= 0    = INum $ 10 ^ e
+         | otherwise = FNum $ 10.0 ** (realToFrac e)

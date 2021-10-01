@@ -108,7 +108,7 @@ evalExpr (FCall "gcd"      a) = do_fcall2 "gcd"       gcd            a
 evalExpr (FCall "lcm"      a) = do_fcall2 "lcm"       lcm            a
 
 -- Built-in variables
-evalExpr (Var "pi")           = return $ Right $ FVal pi
+evalExpr (Var "pi")           = return $ Right $ FNum pi
 
 -- Function Call to user-defined function
 

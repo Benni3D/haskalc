@@ -53,8 +53,8 @@ do_parse_float s =
       ('.':rs) ->
          case do_decimal (-1) rs of
          (Nothing, r2)  -> (Nothing, r2)
-         (Just fp, r2)  -> (Just $ FVal $ (realToFrac n) + fp, r2)
-      rs       -> (Just $ IVal n, r)
+         (Just fp, r2)  -> (Just $ FNum $ (realToFrac n) + fp, r2)
+      rs       -> (Just $ INum n, r)
                      
 
 do_decimal :: Int -> [Char] -> (Maybe FNumber, [Char])
