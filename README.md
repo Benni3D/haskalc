@@ -21,4 +21,10 @@ Click [here](https://stuerz.xyz/generic-haskalc.1.html) to view the man page onl
 Changing the installation prefix can be done by setting the ```PREFIX=/path/to/prefix``` make variable.
 
 ## TODO
-* Add (multi-char) operators: &, &&, |, ||, ==, !=, >=, <=
+* Add parsing of multi-char operators
+* Add bitwise operators: &, |, ^, <<, >>
+* Add boolean operators: &&, ||, ^^
+* Add comparison operators: ==, !=, >=, <=
+* Add integer-divide operator //
+* Add conversion functions (like float2int)
+* Change exponent operator from ^ to \*\*
