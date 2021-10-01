@@ -53,5 +53,6 @@ instance Show Expr where
    show (Paren e)          = "(" ++ (show e) ++ ")"
    show (Unary c e)        = c : (show e)
    show (Binary x c y)     = (show x) ++ [' ', c, ' '] ++ (show y)
+   show (Cond c t f)       = (show c) ++ " ? " ++ (show t) ++ " : " ++ (show f)
 
 
