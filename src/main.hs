@@ -73,7 +73,7 @@ loop env = do
       line     -> do
          expr <- return $ parse_expr line
          (new_env, str) <- return $ run env expr
-         printfIfNotEmpty str
+         printIfNotEmpty str
          loop new_env
 #endif
 
