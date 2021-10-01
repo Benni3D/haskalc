@@ -21,7 +21,7 @@ import Number
 import Util
 import Expr
 
--- do_parse_int :: [Char] -> (Maybe INumber, [Char])
+-- do_parse_int :: String -> (Maybe INumber, String)
 --do_parse_int []                     =  (Nothing, [])
 --do_parse_int (x:xs)  | xs == []     =  (from_digit x, [])
 --                     | otherwise    =  case from_digit x of
@@ -30,7 +30,7 @@ import Expr
 --                                                   (Nothing, r)   -> (Just d, xs)
 --                                                   (Just n, r)    -> (Just $ n + (d * 10^(num_digits n)), r)
 
-do_actual_parse_int :: Maybe INumber -> [Char] -> (Maybe INumber, [Char])
+do_actual_parse_int :: Maybe INumber -> String -> (Maybe INumber, String)
 do_actual_parse_int pre []              = (pre, [])
 do_actual_parse_int Nothing (x:xs)      =
    case from_digit x of
@@ -44,7 +44,7 @@ do_actual_parse_int (Just pre) (x:xs)   =
 
 do_parse_int str = do_actual_parse_int Nothing str
 
-do_parse_float :: [Char] -> (Maybe Number, [Char])
+do_parse_float :: String -> (Maybe Number, String)
 do_parse_float s =
    case do_parse_int s of
    (Nothing, r)   -> (Nothing, r)
@@ -57,7 +57,7 @@ do_parse_float s =
       rs       -> (Just $ INum n, r)
                      
 
-do_decimal :: Int -> [Char] -> (Maybe FNumber, [Char])
+do_decimal :: Int -> String -> (Maybe FNumber, String)
 do_decimal _ []      =  (Nothing, [])
 do_decimal e (x:xs)  =  case from_digit x of
                         Nothing  -> (Nothing, (x:xs))
@@ -67,7 +67,7 @@ do_decimal e (x:xs)  =  case from_digit x of
                         where
                            z = 10.0 ** (realToFrac e) :: FNumber
                            
-do_unary_int :: [Char] -> (Maybe Integer, [Char])
+do_unary_int :: String -> (Maybe Integer, String)
 do_unary_int ('+':xs)   = do_unary_int xs
 do_unary_int ('-':xs)   =
    case do_unary_int xs of
@@ -75,7 +75,7 @@ do_unary_int ('-':xs)   =
    (Just x,  r)   -> (Just $ -x, r)
 do_unary_int s          = do_parse_int s
 
-parse_float :: [Char] -> (Expr, [Char])
+parse_float :: String -> (Expr, String)
 parse_float s =
    case do_parse_float s of
    (Nothing, r)   -> (Error "failed to parse number", r)
@@ -88,16 +88,16 @@ parse_float s =
       rs       -> (Val x, r)
    
 
-parse_num :: [Char] -> (Expr, [Char])
+parse_num :: String -> (Expr, String)
 parse_num s = parse_float s
 
-do_parse_name :: [Char] -> ([Char], [Char])
+do_parse_name :: String -> (String, String)
 do_parse_name []     = ([], [])
 do_parse_name (x:xs) | isAlphaNum x = (x : (fst $ do_parse_name xs), snd $ do_parse_name xs)
                      | otherwise    = ([], (x:xs))
-do_parse_expr :: [Char] -> (Expr, [Char])
+do_parse_expr :: String -> (Expr, String)
 
-parse_fparams :: [Char] -> Bool -> (Maybe [Expr], [Char])
+parse_fparams :: String -> Bool -> (Maybe [Expr], String)
 parse_fparams [] _            = (Nothing, [])
 parse_fparams (')':xs) _      = (Just [], xs)
 parse_fparams (',':xs) False  =
@@ -116,7 +116,7 @@ parse_fparams s True          =
 parse_fparams (x:xs) b        | isSpace x = parse_fparams xs b
                               | otherwise = (Nothing, x:xs)
 
-parse_name :: [Char] -> (Expr, [Char])
+parse_name :: String -> (Expr, String)
 parse_name s =
    case skip_ws $ snd tp of 
       ('(':rs)    -> case parse_fparams rs True of
@@ -127,7 +127,7 @@ parse_name s =
          tp = do_parse_name s
 
 
-parse_prim :: [Char] -> (Expr, [Char])
+parse_prim :: String -> (Expr, String)
 parse_prim []     = (Error "failed to parse primitive", [])
 parse_prim (x:xs) | isSpace x    = parse_prim xs
                   | isDigit x    = parse_num (x:xs)
@@ -136,21 +136,35 @@ parse_prim (x:xs) | isSpace x    = parse_prim xs
 
 
 -- parse '(' `expr` ')'
-match_paren :: (Expr, [Char]) -> (Expr, [Char])
+match_paren :: (Expr, String) -> (Expr, String)
 match_paren (Error e, r)   = (Error e, r)
 match_paren (e, [])        = (Error "missing ')'", [])
 match_paren (e, r:rs)      | isSpace r = match_paren (e, rs)
                            | r == ')'  = (Paren e, rs)
                            | otherwise = (Error "missing ')'", r:rs)
 
-parse_paren :: [Char] -> (Expr, [Char])
+try_match_char :: ((Expr, String) -> (Expr, String)) -> Char -> (Expr, String) -> (Expr, String)
+try_match_char _ _ (Error e, r)     = (Error e, r)
+try_match_char _ _ (e, [])          = (e, [])
+try_match_char f c (e, r:rs)        | isSpace r = try_match_char f c (e, rs)
+                                    | r == c    = f (e, rs)
+                                    | otherwise = (e, r:rs)
+
+match_char :: ((a, String) -> (Expr, String)) -> Char -> (a, String) -> (Expr, String)
+--match_char _ _ (Error e, r)   = (Error e, r)
+match_char _ c (e, [])        = (Error $ "missing '" ++ [c] ++ "'", [])
+match_char f c (e, r:rs)      | isSpace r = match_char f c (e, rs)
+                              | r == c    = f (e, rs)
+                              | otherwise = (Error $ "missing '" ++ [c] ++ "'", rs)
+
+parse_paren :: String -> (Expr, String)
 parse_paren (x:xs)   | isSpace x    = parse_paren xs
                      | x == '('     = match_paren $ do_parse_expr xs
                      | otherwise    = parse_prim $ x:xs
       
-parse_exp :: [Char] -> (Expr, [Char])
+parse_exp :: String -> (Expr, String)
 
-parse_unary :: [Char] -> (Expr, [Char])
+parse_unary :: String -> (Expr, String)
 parse_unary []          = (Error "unexpected end of line", [])
 parse_unary (x:xs)      | isSpace x             = parse_unary xs
                         | x == '+' || x == '-'  =  case parse_unary xs of
@@ -158,7 +172,7 @@ parse_unary (x:xs)      | isSpace x             = parse_unary xs
                                                    (e, r)  -> (Unary x e, r)
                         | otherwise             =  parse_exp $ x:xs
 
-get_op :: [Char] -> [Char] -> (Maybe Char, [Char])
+get_op :: String -> String -> (Maybe Char, String)
 get_op [] ops     = (Nothing, [])
 get_op (x:xs) ops | isSpace x    = get_op xs ops
                   | elem x ops   = (Just x, skip_ws xs)
@@ -172,7 +186,7 @@ do_parse_binary str ops fl fr =  case fl str of
                                                    (Just op, rop) -> case parse_binary rop ops fr of
                                                                (Error e, rr)     -> (Error e, rr)
                                                                (right, rr)       -> (Binary left op right, rr)
-parse_binary :: [Char] -> [Char] -> ([Char] -> (Expr, [Char])) -> (Expr, [Char])
+parse_binary :: String -> String -> (String -> (Expr, String)) -> (Expr, String)
 parse_binary str ops f = do_parse_binary str ops f f
 
 -- parse ^ (exponent)
@@ -184,12 +198,35 @@ parse_muldiv str = parse_binary str "*/%" parse_unary
 -- parse + (addition), - (subtraction)
 parse_addsub str = parse_binary str "+-" parse_muldiv
 
+parse_compare str = parse_binary str "<>" parse_addsub
+
+parse_conditional :: String -> (Expr, String)
+parse_conditional str =
+   case parse_compare str of
+   (Error msg , r)   -> (Error msg, r)
+   (cond, r)         -> try_match_char parse_cond2 '?' (cond, r)
+
+parse_cond2 :: (Expr, String) -> (Expr, String)
+parse_cond2 (cond, str) =
+   case parse_conditional str of
+   (Error msg, r)    -> (Error msg, r)
+   (tv, r)           -> match_char parse_cond3 ':' ((cond, tv), r)
+
+parse_cond3 :: ((Expr, Expr), String) -> (Expr, String)
+parse_cond3 ((c, tv), str) =
+   case parse_conditional str of
+   (Error msg, r)    -> (Error msg, r)
+   (fv, r)           -> (Cond c tv fv, r)
+
+
+
 -- parse = (assignment)
-parse_assign str = parse_binary str "=" parse_addsub
+parse_assign str = parse_binary str "=" parse_conditional
+
 
 do_parse_expr str = parse_assign str
 
-parse_expr :: [Char] -> Expr
+parse_expr :: String -> Expr
 parse_expr str =  case do_parse_expr str of
                   (Error e, r)   -> Error e
                   (e, r)         -> if (skip_ws r) == [] then e else Error "expected end of line, got garbage"

@@ -26,6 +26,7 @@ data Expr   = Val Number
             | Paren Expr
             | Unary Char Expr
             | Binary Expr Char Expr
+            | Cond Expr Expr Expr
             | Error String
 
 show2 :: [Expr] -> [Char]

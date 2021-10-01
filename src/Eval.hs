@@ -56,6 +56,13 @@ do_binary f l r = do
       Left s         -> return $ Left s
       Right (x, y)   -> return $ Right $ NVal $ f x y
 
+do_compare :: (Number -> Number -> Bool) -> Expr -> Expr -> EvalContext EvalResult
+do_compare f l r = do
+   res <- evalNumbers (l, r)
+   case res of
+      Left s         -> return $ Left s
+      Right (x, y)   -> return $ Right $ BVal $ f x y
+
 do_fcall1 :: String -> (Number -> Number) -> [Expr] -> EvalContext EvalResult
 do_fcall1 _ f [e] = do
    res <- evalNumber e
@@ -89,6 +96,19 @@ evalExpr (Binary l '*' r)     = do_binary (*) l r
 evalExpr (Binary l '/' r)     = do_binary (/) l r
 evalExpr (Binary l '%' r)     = do_binary rem l r
 evalExpr (Binary l '^' r)     = do_binary (**) l r
+evalExpr (Binary l '<' r)     = do_compare (<) l r
+evalExpr (Binary l '>' r)     = do_compare (>) l r
+evalExpr (Cond c l r)         = do
+   tmp <- evalExpr c
+   case tmp of
+      Left msg    -> return $ Left msg
+      Right cond  ->
+         case cond of
+            (BVal b) ->
+               case b of
+                  True  -> evalExpr l
+                  False -> evalExpr r
+            _        -> return $ Left $ "`" ++ (show c) ++ "` is not a boolean value."
 
 -- Assignment to Variable
 
@@ -140,6 +160,8 @@ evalExpr (FCall "lcm"      a) = do_fcall2 "lcm"       lcm            a
 
 -- Built-in variables
 evalExpr (Var "pi")           = return $ Right $ NVal $ FNum pi
+evalExpr (Var "true")         = return $ Right $ BVal True
+evalExpr (Var "false")        = return $ Right $ BVal False
 
 -- Function Call to user-defined function
 
