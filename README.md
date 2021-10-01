@@ -21,4 +21,5 @@ Click [here](https://stuerz.xyz/generic-haskalc.1.html) to view the man page onl
 Changing the installation prefix can be done by setting the ```PREFIX=/path/to/prefix``` make variable.
 
 ## TODO
-* Add user-defined functions
+* Comparison operators (<, >, ==)
+* Conditional syntax (cond ? te : fe)

@@ -18,4 +18,23 @@
 module Value where
 import Number
 
-data Value = NVal Number | BVal Bool | EmptyValue
+data Value = NVal Number | BVal Bool | NoVal
+
+instance Eq Value where
+   (==) (NVal x) (NVal y)  = x == y
+   (==) (BVal x) (BVal y)  = x == y
+   (==) (NoVal)  (NoVal)   = True
+   (==) _ _                = False
+
+instance Show Value where
+   show (NVal x)  = show x
+   show (BVal x)  = show x
+   show (NoVal)   = ""
+
+valGetNum :: Value -> Maybe Number
+valGetNum (NVal x)   = Just x
+valGetNum _          = Nothing
+
+valGetBool :: Value -> Maybe Bool
+valGetBool (BVal x)  = Just x
+valGetBool _         = Nothing
