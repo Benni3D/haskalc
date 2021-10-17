@@ -26,5 +26,4 @@ Changing the installation prefix can be done by setting the ```PREFIX=/path/to/p
 * Add boolean operators: &&, ||, ^^
 * Add comparison operators: ==, !=, >=, <=
 * Add integer-divide operator //
-* Add conversion functions (like float2int)
 * Change exponent operator from ^ to \*\*
