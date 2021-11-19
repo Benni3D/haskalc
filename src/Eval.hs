@@ -84,20 +84,20 @@ evalExpr :: Expr -> EvalContext EvalResult
 evalExpr (Error msg)          = return $ Left msg
 evalExpr (Val n)              = return $ Right $ NVal n
 evalExpr (Paren e)            = evalExpr e
-evalExpr (Unary '+' e)        = evalExpr e
-evalExpr (Unary '-' e)        = do
+evalExpr (Unary "+" e)        = evalExpr e
+evalExpr (Unary "-" e)        = do
    res <- evalNumber e
    case res of
       Left msg -> return $ Left msg
       Right x  -> return $ Right $ NVal $ -x
-evalExpr (Binary l '+' r)     = do_binary (+) l r
-evalExpr (Binary l '-' r)     = do_binary (-) l r
-evalExpr (Binary l '*' r)     = do_binary (*) l r
-evalExpr (Binary l '/' r)     = do_binary (/) l r
-evalExpr (Binary l '%' r)     = do_binary rem l r
-evalExpr (Binary l '^' r)     = do_binary (**) l r
-evalExpr (Binary l '<' r)     = do_compare (<) l r
-evalExpr (Binary l '>' r)     = do_compare (>) l r
+evalExpr (Binary l "+" r)     = do_binary (+) l r
+evalExpr (Binary l "-" r)     = do_binary (-) l r
+evalExpr (Binary l "*" r)     = do_binary (*) l r
+evalExpr (Binary l "/" r)     = do_binary (/) l r
+evalExpr (Binary l "%" r)     = do_binary rem l r
+evalExpr (Binary l "^" r)     = do_binary (**) l r
+evalExpr (Binary l "<" r)     = do_compare (<) l r
+evalExpr (Binary l ">" r)     = do_compare (>) l r
 evalExpr (Cond c l r)         = do
    tmp <- evalExpr c
    case tmp of
@@ -112,7 +112,7 @@ evalExpr (Cond c l r)         = do
 
 -- Assignment to Variable
 
-evalExpr (Binary (Var name) '=' r) = do
+evalExpr (Binary (Var name) "=" r) = do
    mv <- evalExpr r
    case mv of
       (Left msg)  -> return $ Left msg
@@ -122,7 +122,7 @@ evalExpr (Binary (Var name) '=' r) = do
 
 -- Definition of Function
 
-evalExpr (Binary (FCall name args) '=' r) = do
+evalExpr (Binary (FCall name args) "=" r) = do
    case el_to_pl args of
       Nothing  -> return $ Left $ "failed to parse argument list of " ++ name ++ "."
       Just a   -> do
@@ -131,7 +131,7 @@ evalExpr (Binary (FCall name args) '=' r) = do
 
 -- Assignment to invalid
 
-evalExpr (Binary l '=' _)     = return $ Left $ "cannot assign to `" ++ (show l) ++ "`"
+evalExpr (Binary l "=" _)     = return $ Left $ "cannot assign to `" ++ (show l) ++ "`"
 
 -- Built-in functions
 

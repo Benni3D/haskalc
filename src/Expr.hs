@@ -24,8 +24,8 @@ data Expr   = Val Number
             | Var String
             | FCall String [Expr]
             | Paren Expr
-            | Unary Char Expr
-            | Binary Expr Char Expr
+            | Unary [Char] Expr
+            | Binary Expr [Char] Expr
             | Cond Expr Expr Expr
             | Error String
 
@@ -51,8 +51,8 @@ instance Show Expr where
    show (FCall n [])       = n ++ "()"
    show (FCall n (x:xs))   = n ++ "(" ++ (show x) ++ (show2 xs) ++ ")"
    show (Paren e)          = "(" ++ (show e) ++ ")"
-   show (Unary c e)        = c : (show e)
-   show (Binary x c y)     = (show x) ++ [' ', c, ' '] ++ (show y)
+   show (Unary c e)        = c ++ (show e)
+   show (Binary x c y)     = (show x) ++ " " ++ c ++ " " ++ (show y)
    show (Cond c t f)       = (show c) ++ " ? " ++ (show t) ++ " : " ++ (show f)
 
 

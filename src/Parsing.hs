@@ -169,7 +169,7 @@ parse_unary []          = (Error "unexpected end of line", [])
 parse_unary (x:xs)      | isSpace x             = parse_unary xs
                         | x == '+' || x == '-'  =  case parse_unary xs of
                                                    (Error e, r) -> (Error e, r)
-                                                   (e, r)  -> (Unary x e, r)
+                                                   (e, r)  -> (Unary [x] e, r)
                         | otherwise             =  parse_exp $ x:xs
 
 get_op :: String -> String -> (Maybe Char, String)
@@ -185,7 +185,7 @@ do_parse_binary str ops fl fr =  case fl str of
                                                    (Nothing, rop) -> (left, rl)
                                                    (Just op, rop) -> case parse_binary rop ops fr of
                                                                (Error e, rr)     -> (Error e, rr)
-                                                               (right, rr)       -> (Binary left op right, rr)
+                                                               (right, rr)       -> (Binary left [op] right, rr)
 parse_binary :: String -> String -> (String -> (Expr, String)) -> (Expr, String)
 parse_binary str ops f = do_parse_binary str ops f f
 
